@@ -37,7 +37,7 @@ public class SpellcheckingTextbox extends GuiTextField {
 	}
 
 	public StringAndPoint[] spellCheck(String str, FontRenderer renderer, int height) {
-		if (!mod_TukMC.spellcheckerEnabled) return new StringAndPoint[0];
+		if (!mod_TukMC.spellcheckerEnabled || renderer.getStringWidth(str) >= 360) return new StringAndPoint[0];
 
 		Vector<StringAndPoint> strings = new Vector();
 		String str1 = str.toLowerCase();
@@ -48,10 +48,8 @@ public class SpellcheckingTextbox extends GuiTextField {
 				if (i == str1.length() - 1) ++i;
 				String allBefore = str.substring(0, lastSpace);
 				String str2 = str.substring(lastSpace, i);
-				if (Minecraft.getMinecraft().fontRenderer.getStringWidth(str2) < 360) {
 					strings.add(new StringAndPoint(str.substring(lastSpace, i), new Point(renderer.getStringWidth(allBefore), height)));
 					lastSpace = i + 1;
-				}
 			}
 			++i;
 		}

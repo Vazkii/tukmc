@@ -16,6 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javaQuery.j2ee.tinyURL;
 
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
@@ -95,7 +96,7 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 		int x = Mouse.getX();
 		int y = Mouse.getY();
 		int box = (x - 9) / ((168 - 28) / CHARS.length()) - 1;
-		if (y >= height - 150 && y <= height - 130 && x >= 28 && x <= 168) switch (box) {
+		if (y >= 202 && y <= 223 && x >= 28 && x <= 168) switch (box) {
 			case 0:
 				tooltip = "Converts the text in the chat field into a;Let me Google That For You link.";
 				break;
@@ -141,7 +142,7 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 		int x = Mouse.getX();
 		int y = Mouse.getY();
 		int box = (x - 9) / ((168 - 28) / CHARS.length()) - 1;
-		if (y >= height - 150 && y <= height - 130 && x >= 28 && x <= 168) switch (box) {
+		if (y >= 202 && y <= 223 && x >= 28 && x <= 168) switch (box) {
 			case 0: {
 				URI uri = getURI();
 				if (uri == null) {

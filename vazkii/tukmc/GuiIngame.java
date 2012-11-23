@@ -112,10 +112,9 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 		drawDoubleOutlinedBox(6, height - 98, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 		drawDoubleOutlinedBox(width - 10, height - 98, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 
-		drawOutlinedBox(170, height - 13, 100, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
+		drawOutlinedBox(170, height - 13, width-260, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
 		drawOutlinedBox(8, height - 13, 40, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
 		drawOutlinedBox(8, height - 92, 1, 80, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
-		drawOutlinedBox(width - 270, height - 13, 100, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
 		drawOutlinedBox(width - 48, height - 13, 40, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
 		drawOutlinedBox(width - 8, height - 92, 1, 80, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
 		glPushMatrix();

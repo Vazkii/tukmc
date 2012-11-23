@@ -15,292 +15,169 @@ import net.minecraft.src.ScaledResolution;
 import net.minecraft.src.StringTranslate;
 import net.minecraft.src.StringUtils;
 
-import cpw.mods.fml.common.Side;
-import cpw.mods.fml.common.asm.SideOnly;
+public class GuiNewChat extends net.minecraft.src.GuiNewChat {
+	private final Minecraft mc;
+	private final List sentMessages = new ArrayList();
+	private final List chatLines = new ArrayList();
+	private int field_73768_d = 0;
+	public GuiNewChat(Minecraft par1Minecraft) {
+		super(par1Minecraft);
+		mc = par1Minecraft;
+	}
 
-@SideOnly(Side.CLIENT)
-public class GuiNewChat extends net.minecraft.src.GuiNewChat
-{
-    /** The Minecraft instance. */
-    private final Minecraft mc;
+	@Override
+	public void drawChat(int par1) {
+		if (mc.gameSettings.chatVisibility != 2) {
+			byte var2 = 15;
+			boolean var3 = false;
+			int var5 = chatLines.size();
+			float var6 = mc.gameSettings.chatOpacity * 0.9F + 0.1F;
 
-    /** A list of messages previously sent through the chat GUI */
-    private final List sentMessages = new ArrayList();
+			if (var5 > 0) {
+				if (getChatOpen()) var3 = true;
 
-    /** Chat lines to be displayed in the chat box */
-    private final List chatLines = new ArrayList();
-    private int field_73768_d = 0;
-    private boolean field_73769_e = false;
+				int var7;
+				int var9;
+				int var12;
+				for (var7 = 0; var7 + field_73768_d < chatLines.size() && var7 < var2; ++var7) {
+					ChatLine var8 = (ChatLine) chatLines.get(var7 + field_73768_d);
 
-    public GuiNewChat(Minecraft par1Minecraft)
-    {
-    	super(par1Minecraft);
-        this.mc = par1Minecraft;
-    }
+					if (var8 != null) {
+						var9 = par1 - var8.getUpdatedCounter();
+						double var10 = var9 / 200.0D;
+						var10 = 1.0D - var10;
+						var10 *= 10.0D;
 
-    public void drawChat(int par1)
-    {
-        if (this.mc.gameSettings.chatVisibility != 2)
-        {
-            byte var2 = 15;
-            boolean var3 = false;
-            int var4 = 0;
-            int var5 = this.chatLines.size();
-            float var6 = this.mc.gameSettings.chatOpacity * 0.9F + 0.1F;
+						if (var10 < 0.0D) var10 = 0.0D;
 
-            if (var5 > 0)
-            {
-                if (this.getChatOpen())
-                {
-                    var3 = true;
-                }
+						if (var10 > 1.0D) var10 = 1.0D;
 
-                int var7;
-                int var9;
-                int var12;
-                for (var7 = 0; var7 + this.field_73768_d < this.chatLines.size() && var7 < var2; ++var7)
-                {
-                    ChatLine var8 = (ChatLine)this.chatLines.get(var7 + this.field_73768_d);
+						var10 *= var10;
+						var12 = (int) (255.0D * var10);
 
-                    if (var8 != null)
-                    {
-                        var9 = par1 - var8.getUpdatedCounter();
-                            double var10 = (double)var9 / 200.0D;
-                            var10 = 1.0D - var10;
-                            var10 *= 10.0D;
+						if (var3) var12 = 255;
 
-                            if (var10 < 0.0D)
-                            {
-                                var10 = 0.0D;
-                            }
+						var12 = (int) (var12 * var6);
+						int var14 = -var7 * 9;
+						GL11.glEnable(GL11.GL_BLEND);
+						String var15 = var8.getChatLineString();
+						GL11.glPushMatrix();
+						GL11.glScalef(0.5F, 0.5F, 0.5F);
+						drawRect(22, mc.displayHeight - 53 + var14, 380, mc.displayHeight - 53 + var14 + 9, Integer.MIN_VALUE);
+						if (!mc.gameSettings.chatColours) var15 = StringUtils.stripControlCodes(var15);
+						mc.fontRenderer.drawStringWithShadow(var15, 30, mc.displayHeight - 53 + var14, 16777215);
+						GL11.glPopMatrix();
+					}
+				}
+			}
+		}
+	}
 
-                            if (var10 > 1.0D)
-                            {
-                                var10 = 1.0D;
-                            }
+	@Override
+	public void func_73761_a() {
+		chatLines.clear();
+		sentMessages.clear();
+	}
 
-                            var10 *= var10;
-                            var12 = (int)(255.0D * var10);
+	@Override
+	public void printChatMessage(String par1Str) {
+		printChatMessageWithOptionalDeletion(par1Str, 0);
+	}
 
-                            if (var3)
-                            {
-                                var12 = 255;
-                            }
+	@Override
+	public void printChatMessageWithOptionalDeletion(String par1Str, int par2) {
+		boolean var3 = getChatOpen();
+		boolean var4 = true;
 
-                            var12 = (int)((float)var12 * var6);
-                            ++var4;
+		if (par2 != 0) deleteChatLine(par2);
 
-                            /*if (var12 > 3)
-                            {*/
-                                int var13 = 3;
-                                int var14 = -var7 * 9;
-                                GL11.glEnable(GL11.GL_BLEND);
-                                String var15 = var8.getChatLineString();
-                                GL11.glPushMatrix();
-                                GL11.glScalef(0.5F, 0.5F, 0.5F);
-                                drawRect(22, mc.displayHeight - 53 + var14, 380, mc.displayHeight - 53 + var14 + 9, Integer.MIN_VALUE);
-                                if (!this.mc.gameSettings.chatColours)
-                                {
-                                    var15 = StringUtils.stripControlCodes(var15);
-                                }
-                                this.mc.fontRenderer.drawStringWithShadow(var15, 30, mc.displayHeight - 53 + var14, 16777215);
-                                GL11.glPopMatrix();
-                            //}
-                    }
-                }
+		Iterator var5 = mc.fontRenderer.listFormattedStringToWidth(par1Str, 320).iterator();
 
-                /*if (var3)
-                {
-                    var7 = this.mc.fontRenderer.FONT_HEIGHT;
-                    GL11.glTranslatef(0.0F, (float)var7, 0.0F);
-                    int var16 = var5 * var7 + var5;
-                    var9 = var4 * var7 + var4;
-                    int var17 = this.field_73768_d * var9 / var5;
-                    int var11 = var9 * var9 / var16;
+		while (var5.hasNext()) {
+			String var6 = (String) var5.next();
 
-                    if (var16 != var9)
-                    {
-                        var12 = var17 > 0 ? 170 : 96;
-                        int var18 = this.field_73769_e ? 13382451 : 3355562;
-                        drawRect(0, -var17/2, 2, -var17/2 - var11/2, var18 + (var12 << 24));
-                        drawRect(2, -var17/2, 1, -var17/2 - var11/2, 13421772 + (var12 << 24));
-                    }
-                }*/
-            }
-        }
-    }
+			if (var3 && field_73768_d > 0) {
+				scroll(1);
+			}
 
-    public void func_73761_a()
-    {
-        this.chatLines.clear();
-        this.sentMessages.clear();
-    }
+			if (!var4) var6 = " " + var6;
 
-    /**
-     * takes a String and prints it to chat
-     */
-    public void printChatMessage(String par1Str)
-    {
-        this.printChatMessageWithOptionalDeletion(par1Str, 0);
-    }
+			var4 = false;
+			chatLines.add(0, new ChatLine(mc.ingameGUI.getUpdateCounter(), var6, par2));
+		}
 
-    /**
-     * prints the String to Chat. If the ID is not 0, deletes an existing Chat Line of that ID from the GUI
-     */
-    public void printChatMessageWithOptionalDeletion(String par1Str, int par2)
-    {
-        boolean var3 = this.getChatOpen();
-        boolean var4 = true;
+		while (chatLines.size() > 500)
+			chatLines.remove(chatLines.size() - 1);
+	}
 
-        if (par2 != 0)
-        {
-            this.deleteChatLine(par2);
-        }
+	@Override
+	public List getSentMessages() {
+		return sentMessages;
+	}
 
-        Iterator var5 = this.mc.fontRenderer.listFormattedStringToWidth(par1Str, 320).iterator();
+	@Override
+	public void addToSentMessages(String par1Str) {
+		if (sentMessages.isEmpty() || !((String) sentMessages.get(sentMessages.size() - 1)).equals(par1Str)) sentMessages.add(par1Str);
+	}
 
-        while (var5.hasNext())
-        {
-            String var6 = (String)var5.next();
+	@Override
+	public void resetScroll() {
+		field_73768_d = 0;
+	}
 
-            if (var3 && this.field_73768_d > 0)
-            {
-                this.field_73769_e = true;
-                this.scroll(1);
-            }
+	@Override
+	public void scroll(int par1) {
+		field_73768_d += par1;
+		int var2 = chatLines.size();
 
-            if (!var4)
-            {
-                var6 = " " + var6;
-            }
+		if (field_73768_d > var2 - 14) field_73768_d = var2 - 14;
 
-            var4 = false;
-            this.chatLines.add(0, new ChatLine(this.mc.ingameGUI.getUpdateCounter(), var6, par2));
-        }
+		if (field_73768_d <= 0) {
+			field_73768_d = 0;
+		}
+	}
 
-        while (this.chatLines.size() > 500)
-        {
-            this.chatLines.remove(this.chatLines.size() - 1);
-        }
-    }
+	@Override
+	public ChatClickData func_73766_a(int par1, int par2) {
+		if (!getChatOpen()) return null;
+		else {
+			ScaledResolution var3 = new ScaledResolution(mc.gameSettings, mc.displayWidth, mc.displayHeight);
+			int var4 = var3.getScaleFactor();
+			int var5 = par1 / var4 - 3;
+			int var6 = par2 / var4 - 40;
 
-    /**
-     * Gets the list of messages previously sent through the chat GUI
-     */
-    public List getSentMessages()
-    {
-        return this.sentMessages;
-    }
+			if (var5 >= 0 && var6 >= 0) {
+				int var7 = Math.min(20, chatLines.size());
 
-    /**
-     * Adds this string to the list of sent messages, for recall using the up/down arrow keys
-     */
-    public void addToSentMessages(String par1Str)
-    {
-        if (this.sentMessages.isEmpty() || !((String)this.sentMessages.get(this.sentMessages.size() - 1)).equals(par1Str))
-        {
-            this.sentMessages.add(par1Str);
-        }
-    }
+				if (var5 <= 320 && var6 < mc.fontRenderer.FONT_HEIGHT * var7 + var7) {
+					int var8 = var6 / (mc.fontRenderer.FONT_HEIGHT + 1) + field_73768_d;
+					return new ChatClickData(mc.fontRenderer, (ChatLine) chatLines.get(var8), var5, var6 - (var8 - field_73768_d) * mc.fontRenderer.FONT_HEIGHT + var8);
+				} else return null;
+			} else return null;
+		}
+	}
 
-    /**
-     * Resets the chat scroll (executed when the GUI is closed)
-     */
-    public void resetScroll()
-    {
-        this.field_73768_d = 0;
-        this.field_73769_e = false;
-    }
+	@Override
+	public void addTranslatedMessage(String par1Str, Object... par2ArrayOfObj) {
+		printChatMessage(StringTranslate.getInstance().translateKeyFormat(par1Str, par2ArrayOfObj));
+	}
 
-    /**
-     * Scrolls the chat by the given number of lines.
-     */
-    public void scroll(int par1)
-    {
-        this.field_73768_d += par1;
-        int var2 = this.chatLines.size();
+	@Override
+	public boolean getChatOpen() {
+		return mc.currentScreen instanceof GuiChat;
+	}
 
-        if (this.field_73768_d > var2 - 14)
-        {
-            this.field_73768_d = var2 - 14;
-        }
+	@Override
+	public void deleteChatLine(int par1) {
+		Iterator var2 = chatLines.iterator();
+		ChatLine var3;
 
-        if (this.field_73768_d <= 0)
-        {
-            this.field_73768_d = 0;
-            this.field_73769_e = false;
-        }
-    }
+		do {
+			if (!var2.hasNext()) return;
 
-    public ChatClickData func_73766_a(int par1, int par2)
-    {
-        if (!this.getChatOpen())
-        {
-            return null;
-        }
-        else
-        {
-            ScaledResolution var3 = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
-            int var4 = var3.getScaleFactor();
-            int var5 = par1 / var4 - 3;
-            int var6 = par2 / var4 - 40;
+			var3 = (ChatLine) var2.next();
+		} while (var3.getChatLineID() != par1);
 
-            if (var5 >= 0 && var6 >= 0)
-            {
-                int var7 = Math.min(20, this.chatLines.size());
-
-                if (var5 <= 320 && var6 < this.mc.fontRenderer.FONT_HEIGHT * var7 + var7)
-                {
-                    int var8 = var6 / (this.mc.fontRenderer.FONT_HEIGHT + 1) + this.field_73768_d;
-                    return new ChatClickData(this.mc.fontRenderer, (ChatLine)this.chatLines.get(var8), var5, var6 - (var8 - this.field_73768_d) * this.mc.fontRenderer.FONT_HEIGHT + var8);
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            else
-            {
-                return null;
-            }
-        }
-    }
-
-    /**
-     * Adds a message to the chat after translating to the client's locale.
-     */
-    public void addTranslatedMessage(String par1Str, Object ... par2ArrayOfObj)
-    {
-        this.printChatMessage(StringTranslate.getInstance().translateKeyFormat(par1Str, par2ArrayOfObj));
-    }
-
-    /**
-     * @return {@code true} if the chat GUI is open
-     */
-    public boolean getChatOpen()
-    {
-        return this.mc.currentScreen instanceof GuiChat;
-    }
-
-    /**
-     * finds and deletes a Chat line by ID
-     */
-    public void deleteChatLine(int par1)
-    {
-        Iterator var2 = this.chatLines.iterator();
-        ChatLine var3;
-
-        do
-        {
-            if (!var2.hasNext())
-            {
-                return;
-            }
-
-            var3 = (ChatLine)var2.next();
-        }
-        while (var3.getChatLineID() != par1);
-
-        var2.remove();
-    }
+		var2.remove();
+	}
 }

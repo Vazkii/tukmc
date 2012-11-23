@@ -24,9 +24,9 @@ public class TickHandler implements ITickHandler {
 			CommonUtils.getMc().ingameGUI = new vazkii.tukmc.GuiIngame();
 			ticked = true;
 		}
+		
 		GuiScreen gui = CommonUtils.getMc().currentScreen;
-		if (gui instanceof GuiChat && !gui.getClass().getPackage().getName().equals("vazkii.tukmc")) CommonUtils.getMc().displayGuiScreen(new vazkii.tukmc.GuiChat());
-		else if (mod_TukMC.shouldReopenChat) CommonUtils.getMc().displayGuiScreen(new vazkii.tukmc.GuiChat());
+		if ((gui != null && gui instanceof GuiChat && !(gui instanceof vazkii.tukmc.GuiChat)) || (mod_TukMC.shouldReopenChat && (gui == null || !(gui instanceof GuiChat)))) CommonUtils.getMc().displayGuiScreen(new vazkii.tukmc.GuiChat());
 		mod_TukMC.shouldReopenChat = false;
 	}
 
