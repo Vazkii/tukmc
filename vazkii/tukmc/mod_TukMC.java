@@ -18,14 +18,17 @@ import cpw.mods.fml.common.Side;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.registry.TickRegistry;
 
-@Mod(modid = "tukmc_Vz", name = "TukMC", version = "by Vazkii. Version [1.0] for 1.4.4/5")
+import net.minecraftforge.common.MinecraftForge;
+
+@Mod(modid = "tukmc_Vz", name = "TukMC", version = "by Vazkii. Version [1.0.1] for 1.4.4/5")
 public class mod_TukMC {
 
 	public static File cacheFile;
 
 	public static String pinnedMsg = "";
-	public static boolean spellcheckerEnabled = false;
+	public static boolean spellcheckerEnabled = true;
 	public static boolean closeOnFinish = false;
+	public static boolean displayNotification = true;
 
 	public static boolean shouldReopenChat = false;
 
@@ -36,9 +39,11 @@ public class mod_TukMC {
 		TickRegistry.registerTickHandler(new TickHandler(), Side.CLIENT);
 		cacheFile = IOUtils.getCacheFile(EnumVazkiiMods.TUKMC);
 		SpellChecker.registerDictionaries(getClass().getResource("/com/inet/jortho/"), "en");
+		MinecraftForge.EVENT_BUS.register(new ChatListener());
 
 		NBTTagCompound cmp = IOUtils.getTagCompoundInFile(cacheFile);
 		spellcheckerEnabled = cmp.hasKey("spellcheckerEnabled") ? cmp.getBoolean("spellcheckerEnabled") : true;
+		displayNotification = cmp.hasKey("displayNotification") ? cmp.getBoolean("displayNotification") : true;
 		closeOnFinish = cmp.hasKey("closeOnFinish") ? cmp.getBoolean("closeOnFinish") : false;
 		pinnedMsg = cmp.hasKey("pinnnedMsg") ? cmp.getString("pinnnedMsg") : "";
 		new TukMCUpdateHandler(ModConverter.getMod(getClass()));
@@ -62,6 +67,13 @@ public class mod_TukMC {
 		closeOnFinish = b;
 		NBTTagCompound cmp = IOUtils.getTagCompoundInFile(cacheFile);
 		cmp.setBoolean("closeOnFinish", b);
+		IOUtils.injectNBTToFile(cmp, cacheFile);
+	}
+	
+	public static void setDisplayNotification(boolean b) {
+		displayNotification = b;
+		NBTTagCompound cmp = IOUtils.getTagCompoundInFile(cacheFile);
+		cmp.setBoolean("displayNotification", b);
 		IOUtils.injectNBTToFile(cmp, cacheFile);
 	}
 }

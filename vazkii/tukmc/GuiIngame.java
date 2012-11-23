@@ -56,6 +56,8 @@ import net.minecraft.src.EnumSkyBlock;
 import net.minecraft.src.FontRenderer;
 import net.minecraft.src.GuiPlayerInfo;
 import net.minecraft.src.InventoryPlayer;
+import net.minecraft.src.Item;
+import net.minecraft.src.ItemFood;
 import net.minecraft.src.ItemStack;
 import net.minecraft.src.Material;
 import net.minecraft.src.MathHelper;
@@ -155,14 +157,34 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 			int healthBottom = hasPotion(Potion.regeneration) ? 0xd82424 : 0;
 			int healthTop = hasPotion(Potion.wither) ? 0 : 0x901414;
 			if (hasPotion(Potion.poison)) healthBottom = 0x375d12;
-			drawSolidGradientRect(width / 2 - 90, height - 42, mc.thePlayer.getHealth() * 4, 10, healthBottom, healthTop);
-			drawSolidGradientRect(width / 2 - 90, height - 29, mc.thePlayer.getFoodStats().getFoodLevel() * 4, 4, hasPotion(Potion.hunger) ? 0x0c1702 : 0x6a410b, hasPotion(Potion.hunger) ? 0x1d3208 : 0x8e5409);
-			glPushMatrix();
-			glScalef(0.5F, 0.5F, 0.5F);
 			int hp = mc.thePlayer.getHealth();
 			int food = mc.thePlayer.getFoodStats().getFoodLevel();
-			fr.drawStringWithShadow((hp < 5 ? ColorCode.RED : "") + "" + hp, width - 30, height * 2 - 88, 0xFFFFFF);
-			fr.drawStringWithShadow((food < 5 ? ColorCode.RED : "") + "" + food, width - 30, height * 2 - 60, 0xFFFFFF);
+			drawSolidGradientRect(width / 2 - 90, height - 42, hp * 4, 10, healthBottom, healthTop);
+			int foodHeal = 0;
+			boolean overkill = false;
+			if(food != 20) {
+				int barWidth = 0;
+				ItemStack stack = mc.thePlayer.getCurrentEquippedItem();
+				if(stack != null) {
+					Item item = stack.getItem();
+					if(item != null && item instanceof ItemFood) {
+						foodHeal = ((ItemFood)item).getHealAmount();
+						barWidth = Math.min(20, food + foodHeal);
+						if(food + foodHeal > 20)
+							overkill = true;
+					}
+				}
+				if(barWidth > 0)
+					drawSolidGradientRect(width / 2 - 90, height - 29, barWidth * 4, 4, overkill ? 0 :  0xd82424, 0x901414);
+			}
+			drawSolidGradientRect(width / 2 - 90, height - 29, food * 4, 4, hasPotion(Potion.hunger) ? 0x0c1702 : 0x6a410b, hasPotion(Potion.hunger) ? 0x1d3208 : 0x8e5409);
+			glPushMatrix();
+			glScalef(0.5F, 0.5F, 0.5F);
+			if(foodHeal > 0)
+				fr.drawString("Will Heal: " + foodHeal + (overkill ? (" (Over " + (food + foodHeal - 20) + ")") : ""), width - 178, height * 2 - 57, 0xFFFFFF);
+
+			fr.drawStringWithShadow((hp < 5 ? ColorCode.RED : "") + "" + hp, width - 33, height * 2 - 84, 0xFFFFFF);
+			fr.drawStringWithShadow((food < 5 ? ColorCode.RED : "") + "" + food, width - 33, height * 2 - 58, 0xFFFFFF);
 			glPopMatrix();
 			int lvl = mc.thePlayer.experienceLevel;
 			String lvlStr = ColorCode.BRIGHT_GREEN + "" + lvl;
@@ -274,6 +296,11 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 		}
 
 		presistentChatGui.drawChat(getUpdateCounter());
+		if(TickHandler.getMsgs() != 0 && mod_TukMC.displayNotification) {
+			String s = "! " + ColorCode.RED + TickHandler.getMsgs() + ColorCode.WHITE + " !";
+			drawDoubleOutlinedBox(195, height - 89, fr.getStringWidth(s)+6, 12, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+			fr.drawStringWithShadow(s, 198, height - 87, 0xFFFFFF);
+		}
 
 		if (BossStatus.bossName != null && BossStatus.field_82826_b > 0) {
 			drawDoubleOutlinedBox(width / 2 - 126, 31, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);

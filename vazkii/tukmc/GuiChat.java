@@ -36,7 +36,7 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 	public static final Pattern pattern = Pattern.compile("^(?:(https?)://)?([-\\w_\\.]{2,}\\.[a-z]{2,3})(/\\S*)?$");
 	String username;
 	String tooltip = "";
-	public static final String CHARS = "GSCLPU";
+	public static final String CHARS = "GSCLNPU";
 
 	@Override
 	public void initGui() {
@@ -55,11 +55,15 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 		GL11.glPushMatrix();
 		GL11.glScalef(0.5F, 0.5F, 0.5F);
 		fontRenderer.drawString(username, 17 * 2, (height - 98) * 2, 0xFFFFFF);
-		fontRenderer.drawString(ColorCode.GREY + "Tip: Shift clicking while scrolling will scroll 7x faster!", 175, height * 2 - 211, 0xFFFFFF);
+		fontRenderer.drawString(ColorCode.GREY + "Tip: Shift clicking while scrolling will scroll 7x faster!", 205, height * 2 - 211, 0xFFFFFF);
 		inputField.drawTextBox();
 		GL11.glPopMatrix();
+		int x = Mouse.getX();
+		int y = Mouse.getY();
+		int box = (x - 9) / ((192 - 28) / CHARS.length()) - 1;
+		boolean is = y >= 202 && y <= 223 && x >= 28 && x <= 192;
 		for (int i = 0; i < CHARS.length(); i++) {
-			drawDoubleOutlinedBox(15 + i * 12, height - 112, 9, 10, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+			drawDoubleOutlinedBox(15 + i * 12, height - (is && i == box ? 114 : 112), 9, (is && box == i ? 12 : 10), BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 			fontRenderer.drawStringWithShadow("" + CHARS.charAt(i), 17 + i * 12, height - 111, 0xFFFFFF);
 		}
 		if (tooltip != "") {
@@ -67,7 +71,12 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 			int length = 12;
 			for (String s : tokens)
 				length = Math.max(length, fontRenderer.getStringWidth(s));
-					drawDoubleOutlinedBox(15, height - 114 - tokens.length * 12, length + 6, tokens.length * 12, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+					drawDoubleOutlinedBox(14, height - 114 - tokens.length * 12, length + 6, tokens.length * 12, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+					if(box <= CHARS.length()-1) {
+						drawOutlinedBox(15 + box * 12, height - 114, 9, 1, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+						drawSolidRect(14 + box * 12, height - 115, 26 + box * 12, height - 114, BOX_INNER_COLOR);
+						drawSolidRect(15 + box * 12, height - 115, 24 + box * 12, height - 112, BOX_INNER_COLOR);
+					}
 					int i = 0;
 					for (String s : tokens) {
 						fontRenderer.drawStringWithShadow(s, 18, height - 112 - tokens.length * 12 + i * 12, 0xFFFFFF);
@@ -79,7 +88,7 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 			drawDoubleOutlinedBox(15, height - 211, fontRenderer.getStringWidth(pin) + 6, 14, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 			fontRenderer.drawStringWithShadow(pin, 18, height - 210, 0xFFFFFF);
 			drawDoubleOutlinedBox(15, height - 200, fontRenderer.getStringWidth(mod_TukMC.pinnedMsg) + 6, 14, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-			fontRenderer.drawStringWithShadow(mod_TukMC.pinnedMsg, 18, height - 198, 0xFFFFFF);
+			fontRenderer.drawStringWithShadow(mod_TukMC.pinnedMsg, 18, height - 197, 0xFFFFFF);
 		}
 	}
 
@@ -95,13 +104,13 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 
 		int x = Mouse.getX();
 		int y = Mouse.getY();
-		int box = (x - 9) / ((168 - 28) / CHARS.length()) - 1;
-		if (y >= 202 && y <= 223 && x >= 28 && x <= 168) switch (box) {
+		int box = (x - 9) / ((192 - 28) / CHARS.length()) - 1;
+		if (y >= 202 && y <= 223 && x >= 28 && x <= 192) switch (box) {
 			case 0:
 				tooltip = "Converts the text in the chat field into a;Let me Google That For You link.";
 				break;
 			case 1:
-				tooltip = "Shortens the link using tinyurl. " + ColorCode.RED + "(May take;" + ColorCode.RED + "a while)";
+				tooltip = "Shortens aw link using tinyurl. " + ColorCode.RED + "(May take;" + ColorCode.RED + "a while)";
 				break;
 			case 2:
 				tooltip = (mod_TukMC.spellcheckerEnabled ? "Disables" : "Enables") + " the Spellchecker";
@@ -109,11 +118,15 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 			case 3:
 				tooltip = (mod_TukMC.closeOnFinish ? "Unlocks" : "Locks") + " the Chat GUI (" + (mod_TukMC.closeOnFinish ? "doesn't exit" : "exits") + " after;saying something)";
 				break;
-			case 4:
+			case 5:
 				tooltip = "Pins the text in the chat field to the;screen.";
 				break;
-			case 5:
+			case 6:
 				tooltip = "Unpins the text pinned to the screen.";
+				break;
+			case 4 :
+				tooltip = (mod_TukMC.displayNotification ? "Disables" : "Enables")+ " notifications for new messages.";
+				break;
 		}
 		else tooltip = "";
 
@@ -141,50 +154,57 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 	protected void mouseClicked(int par1, int par2, int par3) {
 		int x = Mouse.getX();
 		int y = Mouse.getY();
-		int box = (x - 9) / ((168 - 28) / CHARS.length()) - 1;
-		if (y >= 202 && y <= 223 && x >= 28 && x <= 168) switch (box) {
-			case 0: {
-				URI uri = getURI();
-				if (uri == null) {
-					String text = inputField.getText();
-					if (MathHelper.stringNullOrLengthZero(text)) break;
+		int box = (x - 9) / ((192 - 28) / CHARS.length()) - 1;
+		if (y >= 202 && y <= 223 && x >= 28 && x <= 192) {
+			mc.sndManager.playSoundFX("random.click", 1F, 1F);
+			switch (box) {
+				case 0: {
+					URI uri = getURI();
+					if (uri == null) {
+						String text = inputField.getText();
+						if (MathHelper.stringNullOrLengthZero(text)) break;
 
-					String s = "http://lmgtfy.com/?q=" + text.replaceAll(" ", "+");
-					inputField.setText(s);
+						String s = "http://lmgtfy.com/?q=" + text.replaceAll(" ", "+");
+						inputField.setText(s);
+					}
+					break;
 				}
-				break;
-			}
-			case 1: {
-				URI uri = getURI();
-				if (UpdateManager.online && uri != null) {
+				case 1: {
+					URI uri = getURI();
+					if (UpdateManager.online && uri != null) {
+						String text = inputField.getText();
+						if (text.contains("tinyurl.com/")) break;
+						tinyURL url = new tinyURL();
+						inputField.setText(url.getTinyURL(text).replaceAll("http://preview.", ""));
+					}
+					break;
+				}
+				case 2: {
+					mod_TukMC.setSpellcheckerEnabled(!mod_TukMC.spellcheckerEnabled);
+					break;
+				}
+				case 3: {
+					mod_TukMC.setCloseOnFinish(!mod_TukMC.closeOnFinish);
+					break;
+				}
+				case 5: {
 					String text = inputField.getText();
-					if (text.contains("tinyurl.com/")) break;
-					tinyURL url = new tinyURL();
-					inputField.setText(url.getTinyURL(text).replaceAll("http://preview.", ""));
+					if (!MathHelper.stringNullOrLengthZero(text)) {
+						mod_TukMC.setPinnedMsg(text);
+						inputField.setText("");
+					}
+					break;
 				}
-				break;
-			}
-			case 2: {
-				mod_TukMC.setSpellcheckerEnabled(!mod_TukMC.spellcheckerEnabled);
-				break;
-			}
-			case 3: {
-				mod_TukMC.setCloseOnFinish(!mod_TukMC.closeOnFinish);
-				break;
-			}
-			case 4: {
-				String text = inputField.getText();
-				if (!MathHelper.stringNullOrLengthZero(text)) {
-					mod_TukMC.setPinnedMsg(text);
-					inputField.setText("");
+				case 6: {
+					inputField.setText(mod_TukMC.pinnedMsg);
+					mod_TukMC.setPinnedMsg("");
+					break;
 				}
-				break;
-			}
-			case 5: {
-				inputField.setText(mod_TukMC.pinnedMsg);
-				mod_TukMC.setPinnedMsg("");
-				break;
-			}
+				case 4 : {
+					mod_TukMC.setDisplayNotification(!mod_TukMC.displayNotification);
+					break;
+				}
+		}
 		}
 		if (par3 == 0 && mc.gameSettings.chatLinks) {
 			ChatClickData var4 = mc.ingameGUI.getChatGUI().func_73766_a(Mouse.getX() * 2, Mouse.getY() * 2);
@@ -224,6 +244,14 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 
 			return null;
 		}
+	}
+	
+	public void drawOutlinedBox(int x, int y, int width, int height, int color, int outlineColor) {
+		glPushMatrix();
+		glScalef(0.5F, 0.5F, 0.5F);
+		drawSolidRect(x * 2 - 2, y * 2 - 2, (x + width) * 2 + 2, (y + height) * 2 + 2, outlineColor);
+		drawSolidRect(x * 2 - 1, y * 2 - 1, (x + width) * 2 + 1, (y + height) * 2 + 1, color);
+		glPopMatrix();
 	}
 
 	public void drawDoubleOutlinedBox(int x, int y, int width, int height, int color, int outlineColor) {
