@@ -35,7 +35,9 @@ import static vazkii.tukmc.TukMCReference.BOX_OUTLINE_COLOR;
 import static vazkii.tukmc.TukMCReference.MC_VERSION;
 
 import java.awt.Color;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import org.lwjgl.opengl.GL11;
@@ -114,7 +116,7 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 		drawDoubleOutlinedBox(6, height - 98, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 		drawDoubleOutlinedBox(width - 10, height - 98, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 
-		drawOutlinedBox(170, height - 13, width-260, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
+		drawOutlinedBox(170, height - 13, width - 260, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
 		drawOutlinedBox(8, height - 13, 40, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
 		drawOutlinedBox(8, height - 92, 1, 80, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
 		drawOutlinedBox(width - 48, height - 13, 40, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
@@ -162,26 +164,23 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 			drawSolidGradientRect(width / 2 - 90, height - 42, hp * 4, 10, healthBottom, healthTop);
 			int foodHeal = 0;
 			boolean overkill = false;
-			if(food != 20) {
+			if (food != 20) {
 				int barWidth = 0;
 				ItemStack stack = mc.thePlayer.getCurrentEquippedItem();
-				if(stack != null) {
+				if (stack != null) {
 					Item item = stack.getItem();
-					if(item != null && item instanceof ItemFood) {
-						foodHeal = ((ItemFood)item).getHealAmount();
+					if (item != null && item instanceof ItemFood) {
+						foodHeal = ((ItemFood) item).getHealAmount();
 						barWidth = Math.min(20, food + foodHeal);
-						if(food + foodHeal > 20)
-							overkill = true;
+						if (food + foodHeal > 20) overkill = true;
 					}
 				}
-				if(barWidth > 0)
-					drawSolidGradientRect(width / 2 - 90, height - 29, barWidth * 4, 4, overkill ? 0 :  0xd82424, 0x901414);
+				if (barWidth > 0) drawSolidGradientRect(width / 2 - 90, height - 29, barWidth * 4, 4, overkill ? 0 : 0xd82424, 0x901414);
 			}
 			drawSolidGradientRect(width / 2 - 90, height - 29, food * 4, 4, hasPotion(Potion.hunger) ? 0x0c1702 : 0x6a410b, hasPotion(Potion.hunger) ? 0x1d3208 : 0x8e5409);
 			glPushMatrix();
 			glScalef(0.5F, 0.5F, 0.5F);
-			if(foodHeal > 0)
-				fr.drawString("Will Heal: " + foodHeal + (overkill ? (" (Over " + (food + foodHeal - 20) + ")") : ""), width - 178, height * 2 - 57, 0xFFFFFF);
+			if (foodHeal > 0) fr.drawString("Will Heal: " + foodHeal + (overkill ? " (Over " + (food + foodHeal - 20) + ")" : ""), width - 178, height * 2 - 57, 0xFFFFFF);
 
 			fr.drawStringWithShadow((hp < 5 ? ColorCode.RED : "") + "" + hp, width - 33, height * 2 - 84, 0xFFFFFF);
 			fr.drawStringWithShadow((food < 5 ? ColorCode.RED : "") + "" + food, width - 33, height * 2 - 58, 0xFFFFFF);
@@ -217,6 +216,7 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 		int fallDmg = MathHelper.ceiling_float_int(mc.thePlayer.fallDistance - 3.0F);
 		if (mc.thePlayer.isSneaking()) status = "Sneaking";
 		if (mc.thePlayer.isSprinting()) status = "Sprinting";
+		else if (mc.thePlayer.getFoodStats().getFoodLevel() <= 6) status = ColorCode.RED + "Can't Sprint";
 		if (mc.thePlayer.capabilities.isFlying) status = "Flying";
 		else if (fallDmg > 0 && !mc.thePlayer.capabilities.isCreativeMode) status = "Falling: " + ColorCode.RED + fallDmg;
 		fr.drawStringWithShadow(mc.thePlayer.username + (status.equals("") ? "" : " - ") + status, width / 2 + 9, height - 33 - (shouldDrawHUD ? 8 : 0), 0xFFFFFF);
@@ -262,6 +262,12 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 			if (recordPlayingUpFor <= 0) recordIsPlaying = false;
 		}
 
+		int posX = MathHelper.floor_double(mc.thePlayer.posX);
+		int posY = MathHelper.floor_double(mc.thePlayer.posY);
+		int posZ = MathHelper.floor_double(mc.thePlayer.posZ);
+		Chunk chunk = mc.theWorld.getChunkFromBlockCoords(posX, posZ);
+		String biomeName = chunk.getBiomeGenForWorldCoords(posX & 15, posZ & 15, mc.theWorld.getWorldChunkManager()).biomeName;
+
 		if (mc.gameSettings.showDebugInfo) {
 			glPushMatrix();
 			fr.drawStringWithShadow("Minecraft " + MC_VERSION + " (" + mc.debug + ")", 2, 2, 0xFFFFFF);
@@ -277,173 +283,180 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 			drawString(fr, string, width - fr.getStringWidth(string) - 2, 2, 14737632);
 			string = "Allocated memory: " + totalMemory * 100L / maxMemory + "% (" + totalMemory / 1024L / 1024L + "MB)";
 			drawString(fr, string, width - fr.getStringWidth(string) - 2, 12, 14737632);
-			int posX = MathHelper.floor_double(mc.thePlayer.posX);
-			int posY = MathHelper.floor_double(mc.thePlayer.posY);
-			int posZ = MathHelper.floor_double(mc.thePlayer.posZ);
 			drawString(fr, String.format("x: %.5f (%d) // c: %d (%d)", Double.valueOf(mc.thePlayer.posX), Integer.valueOf(posX), Integer.valueOf(posX >> 4), Integer.valueOf(posX & 15)), 2, 64, 14737632);
 			drawString(fr, String.format("y: %.3f (feet pos, %.3f eyes pos)", Double.valueOf(mc.thePlayer.boundingBox.minY), Double.valueOf(mc.thePlayer.posY)), 2, 72, 14737632);
 			drawString(fr, String.format("z: %.5f (%d) // c: %d (%d)", Double.valueOf(mc.thePlayer.posZ), Integer.valueOf(posZ), Integer.valueOf(posZ >> 4), Integer.valueOf(posZ & 15)), 2, 80, 14737632);
 			int direction = MathHelper.floor_double(mc.thePlayer.rotationYaw * 4.0F / 360.0F + 0.5D) & 3;
 			drawString(fr, "f: " + direction + " (" + Direction.directions[direction] + ") / " + MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw), 2, 88, 14737632);
 
-			if (mc.theWorld != null && mc.theWorld.blockExists(posX, posY, posZ)) {
-				Chunk chunk = mc.theWorld.getChunkFromBlockCoords(posX, posZ);
-				drawString(fr, "lc: " + (chunk.getTopFilledSegment() + 15) + " b: " + chunk.getBiomeGenForWorldCoords(posX & 15, posZ & 15, mc.theWorld.getWorldChunkManager()).biomeName + " bl: " + chunk.getSavedLightValue(EnumSkyBlock.Block, posX & 15, posY, posZ & 15) + " sl: " + chunk.getSavedLightValue(EnumSkyBlock.Sky, posX & 15, posY, posZ & 15) + " rl: " + chunk.getBlockLightValue(posX & 15, posY, posZ & 15, 0), 2, 96, 14737632);
-			}
-
+			if (mc.theWorld != null && mc.theWorld.blockExists(posX, posY, posZ)) drawString(fr, "lc: " + (chunk.getTopFilledSegment() + 15) + " b: " + biomeName + " bl: " + chunk.getSavedLightValue(EnumSkyBlock.Block, posX & 15, posY, posZ & 15) + " sl: " + chunk.getSavedLightValue(EnumSkyBlock.Sky, posX & 15, posY, posZ & 15) + " rl: " + chunk.getBlockLightValue(posX & 15, posY, posZ & 15, 0), 2, 96, 14737632);
 			drawString(fr, String.format("ws: %.3f, fs: %.3f, g: %b, fl: %d", Float.valueOf(mc.thePlayer.capabilities.getWalkSpeed()), Float.valueOf(mc.thePlayer.capabilities.getFlySpeed()), Boolean.valueOf(mc.thePlayer.onGround), Integer.valueOf(mc.theWorld.getHeightValue(posX, posZ))), 2, 104, 14737632);
 			glPopMatrix();
 		}
 
 		presistentChatGui.drawChat(getUpdateCounter());
-		if(TickHandler.getMsgs() != 0 && mod_TukMC.displayNotification) {
+		if (TickHandler.getMsgs() != 0 && mod_TukMC.displayNotification) {
 			String s = "! " + ColorCode.RED + TickHandler.getMsgs() + ColorCode.WHITE + " !";
-			drawDoubleOutlinedBox(195, height - 89, fr.getStringWidth(s)+6, 12, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-			fr.drawStringWithShadow(s, 198, height - 87, 0xFFFFFF);
-		}
-
-		if (BossStatus.bossName != null && BossStatus.field_82826_b > 0) {
-			drawDoubleOutlinedBox(width / 2 - 126, 31, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-			drawDoubleOutlinedBox(width / 2 + 121, 31, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-
-			drawOutlinedBox(width / 2 - 119, 33, 238, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
+			drawDoubleOutlinedBox(199, height - 80, fr.getStringWidth(s) + 6, 12, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+			fr.drawStringWithShadow(s, 202, height - 78, 0xFFFFFF);
 			glPushMatrix();
-			glDisable(GL_DEPTH_TEST);
 			glScalef(0.5F, 0.5F, 0.5F);
-			drawSolidRect(width - 243, 65, width + 240, 69, BOX_OUTLINE_COLOR);
-			glEnable(GL_DEPTH_TEST);
+			fr.drawStringWithShadow("New Messages:", 195 * 2, (height - 86) * 2, 0xFFFFFF);
 			glPopMatrix();
-			BossStatus.field_82826_b--;
-			drawOutlinedBox(width / 2 - fr.getStringWidth(BossStatus.bossName) / 2 - 3, 17, fr.getStringWidth(BossStatus.bossName) + 6, 14, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-			drawDoubleOutlinedBox(width / 2 - 91, 28, 182, 10, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-			int renderHealth = (int) (BossStatus.healthScale * 182);
-			drawSolidGradientRect(width / 2 - 91, 28, renderHealth, 10, 0, 0x25092e);
-			fr.drawStringWithShadow(ColorCode.PURPLE + BossStatus.bossName, width / 2 - fr.getStringWidth(BossStatus.bossName) / 2, 18, 0xFFFFFF);
-			String hp = (BossStatus.healthScale < 0.1 ? ColorCode.RED : "") + "" + Math.round(BossStatus.healthScale * 100) + "%";
-			if (!(BossStatus.healthScale < 0)) fr.drawStringWithShadow(hp, width / 2 - fr.getStringWidth(hp) / 2, 29, 0xFFFFFF);
 		}
 
-		if (mc.gameSettings.keyBindPlayerList.pressed && (!mc.isIntegratedServerRunning() || mc.thePlayer.sendQueue.playerInfoList.size() > 1)) {
-			mc.mcProfiler.startSection("playerList");
-			NetClientHandler var37 = mc.thePlayer.sendQueue;
-			List var39 = var37.playerInfoList;
-			int var13 = var37.currentServerMaxPlayers;
-			int var40 = var13;
-			int var38;
+		String time = new SimpleDateFormat("HH:mm").format(new Date()).toString();
+		int invSlots = 0;
+		for (ItemStack element : mc.thePlayer.inventory.mainInventory)
+			if (element == null) ++invSlots;
 
-			for (var38 = 1; var40 > 20; var40 = (var13 + var38 - 1) / var38)
-				++var38;
+				String topData = biomeName + " | " + time + " | Inv: " + invSlots;
+				int size = fr.getStringWidth(topData);
 
-			int var16 = 300 / var38;
+				drawDoubleOutlinedBox(width / 2 - size / 2 - 3, -1, size + 6, 15, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+				fr.drawStringWithShadow(topData, width / 2 - size / 2, 4, 0xFFFFFF);
 
-			if (var16 > 150) var16 = 150;
+				if (BossStatus.bossName != null && BossStatus.field_82826_b > 0) {
+					drawDoubleOutlinedBox(width / 2 - 126, 34, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+					drawDoubleOutlinedBox(width / 2 + 121, 34, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 
-			int var17 = (width - var38 * var16) / 2;
-			byte var44 = 18;
-			drawDoubleOutlinedBox(var17 - 2, var44 - 2, var16 * var38 + 3, 9 * var40 + 3, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-			int var19;
-			int var20;
-			int var47;
-
-			for (var19 = 0; var19 < var13; ++var19) {
-				var20 = var17 + var19 % var38 * var16;
-				var47 = var44 + var19 / var38 * 9;
-				drawOutlinedBox(var20, var47, var16 - 1, 8, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-				GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-				GL11.glEnable(GL11.GL_ALPHA_TEST);
-
-				if (var19 < var39.size()) {
-					GuiPlayerInfo var46 = (GuiPlayerInfo) var39.get(var19);
-					fr.drawStringWithShadow(var46.name, var20, var47, 16777215);
-					mc.renderEngine.bindTexture(mc.renderEngine.getTexture("/gui/icons.png"));
-					byte var50 = 0;
-					byte var49;
-
-					if (var46.responseTime < 0) var49 = 5;
-					else if (var46.responseTime < 150) var49 = 0;
-					else if (var46.responseTime < 300) var49 = 1;
-					else if (var46.responseTime < 600) var49 = 2;
-					else if (var46.responseTime < 1000) var49 = 3;
-					else var49 = 4;
-
-					zLevel += 100.0F;
-					drawTexturedModalRect(var20 + var16 - 12, var47, 0 + var50 * 10, 176 + var49 * 8, 10, 8);
-					GL11.glPushMatrix();
-					GL11.glScalef(0.5F, 0.5F, 0.5F);
-					GL11.glDisable(GL11.GL_DEPTH_TEST);
-					String ms = var46.responseTime + " ms.";
-					fr.drawStringWithShadow(ms, (var20 + var16 - 9 - fr.getStringWidth(ms) / 2) * 2, var47 * 2, 16777215);
-					glEnable(GL11.GL_DEPTH_TEST);
+					drawOutlinedBox(width / 2 - 119, 36, 238, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
+					glPushMatrix();
+					glDisable(GL_DEPTH_TEST);
+					glScalef(0.5F, 0.5F, 0.5F);
+					drawSolidRect(width - 243, 71, width + 240, 75, BOX_OUTLINE_COLOR);
+					glEnable(GL_DEPTH_TEST);
 					glPopMatrix();
-					zLevel -= 100.0F;
+					BossStatus.field_82826_b--;
+					drawOutlinedBox(width / 2 - fr.getStringWidth(BossStatus.bossName) / 2 - 3, 20, fr.getStringWidth(BossStatus.bossName) + 6, 14, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+					drawDoubleOutlinedBox(width / 2 - 91, 31, 182, 10, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+					int renderHealth = (int) (BossStatus.healthScale * 182);
+					drawSolidGradientRect(width / 2 - 91, 31, renderHealth, 10, 0, 0x25092e);
+					fr.drawStringWithShadow(ColorCode.PURPLE + BossStatus.bossName, width / 2 - fr.getStringWidth(BossStatus.bossName) / 2, 21, 0xFFFFFF);
+					String hp = (BossStatus.healthScale < 0.1 ? ColorCode.RED : "") + "" + Math.round(BossStatus.healthScale * 100) + "%";
+					if (!(BossStatus.healthScale < 0)) fr.drawStringWithShadow(hp, width / 2 - fr.getStringWidth(hp) / 2, 32, 0xFFFFFF);
 				}
-			}
-		}
 
-		Collection<PotionEffect> potions = mc.thePlayer.getActivePotionEffects();
-		int xPotOffset = 0;
-		int yPotOffset = 0;
-		int itr = 0;
-		for (PotionEffect effect : potions) {
-			Potion pot = Potion.potionTypes[effect.getPotionID()];
-			if (itr % 8 == 0) {
-				xPotOffset = 0;
-				yPotOffset += 1;
-			}
-			String effectStr = Potion.getDurationString(effect);
-			drawDoubleOutlinedBox(width - 30 - xPotOffset * 21, height - 9 - yPotOffset * 28, fr.getStringWidth(effectStr) / 2 + 2, 8, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-			drawDoubleOutlinedBox(width - 30 - xPotOffset * 21, height - 26 - yPotOffset * 28, 18, 18, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-			GL11.glDisable(GL11.GL_LIGHTING);
-			glDisable(GL_DEPTH_TEST);
-			int index = pot.getStatusIconIndex();
-			mc.renderEngine.bindTexture(mc.renderEngine.getTexture("/gui/inventory.png"));
-			if (pot.hasStatusIcon()) drawTexturedModalRect(width - 30 - xPotOffset * 21, height - 26 - yPotOffset * 28, 0 + index % 8 * 18, 198 + index / 8 * 18, 18, 18);
-			glEnable(GL_DEPTH_TEST);
+				if (mc.gameSettings.keyBindPlayerList.pressed && (!mc.isIntegratedServerRunning() || mc.thePlayer.sendQueue.playerInfoList.size() > 1)) {
+					NetClientHandler var37 = mc.thePlayer.sendQueue;
+					List var39 = var37.playerInfoList;
+					int var13 = var37.currentServerMaxPlayers;
+					int var40 = var13;
+					int var38;
 
-			String level = StatCollector.translateToLocal("enchantment.level." + (effect.getAmplifier() + 1));
+					for (var38 = 1; var40 > 20; var40 = (var13 + var38 - 1) / var38)
+						++var38;
 
-			if (level.length() < 5 && !level.equals(StatCollector.translateToLocal("enchantment.level.1"))) fr.drawStringWithShadow(level, width - 29 - xPotOffset * 21, height - 25 - yPotOffset * 28, 0xFFFFFF);
+					int var16 = 300 / var38;
 
-			glPushMatrix();
-			glScalef(0.5F, 0.5F, 0.5F);
-			fr.drawStringWithShadow((effect.func_82720_e() ? ColorCode.RED : "") + effectStr, (width - 29 - xPotOffset * 21) * 2, (height - 6 - yPotOffset * 28) * 2, 0xFFFFFF);
-			glPopMatrix();
-			++itr;
-			++xPotOffset;
-		}
+					if (var16 > 150) var16 = 150;
 
-		tooltip: {
-			if (KeyRegister.showTooltipKB.pressed) {
-				ItemStack stack = mc.thePlayer.getCurrentEquippedItem();
-				if (stack == null) break tooltip;
-				int loc = mc.thePlayer.inventory.currentItem;
+					int var17 = (width - var38 * var16) / 2;
+					byte var44 = 22;
+					drawDoubleOutlinedBox(var17 - 2, var44 - 2, var16 * var38 + 3, 9 * var40 + 3, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+					int var19;
+					int var20;
+					int var47;
 
-				int x = width / 2 - 88 + loc * 20;
-				int y = height - 20;
+					for (var19 = 0; var19 < var13; ++var19) {
+						var20 = var17 + var19 % var38 * var16;
+						var47 = var44 + var19 / var38 * 9;
+						drawOutlinedBox(var20, var47, var16 - 1, 8, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+						GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+						GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-				List<String> tokensList = stack.getTooltip(mc.thePlayer, mc.gameSettings.advancedItemTooltips);
-				if (tokensList.isEmpty()) break tooltip;
+						if (var19 < var39.size()) {
+							GuiPlayerInfo var46 = (GuiPlayerInfo) var39.get(var19);
+							fr.drawStringWithShadow(var46.name, var20, var47, 16777215);
+							mc.renderEngine.bindTexture(mc.renderEngine.getTexture("/gui/icons.png"));
+							byte var50 = 0;
+							byte var49;
 
-				glPushMatrix();
-				glDisable(GL_DEPTH_TEST);
+							if (var46.responseTime < 0) var49 = 5;
+							else if (var46.responseTime < 150) var49 = 0;
+							else if (var46.responseTime < 300) var49 = 1;
+							else if (var46.responseTime < 600) var49 = 2;
+							else if (var46.responseTime < 1000) var49 = 3;
+							else var49 = 4;
 
-				int lenght = 12;
-				for (String s : tokensList)
-					lenght = Math.max(lenght, fr.getStringWidth(s));
-						drawDoubleOutlinedBox(x, y - tokensList.size() * 12 - 5, lenght + 4, tokensList.size() * 12, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-						int i = 1;
-						for (String s : tokensList) {
-							if (i == 1) s = "\u00a7" + Integer.toHexString(stack.getRarity().rarityColor) + s;
-							else s = "\u00a77" + s;
-							if (i == 1) fr.drawStringWithShadow(s, x + 2, y - (tokensList.size() + 1) * 12 + i * 12 - 3, 0xFFFFFF);
-							else fr.drawString(s, x + 2, y - (tokensList.size() + 1) * 12 + i * 12 - 3, 0xFFFFFF);
-							++i;
+							zLevel += 100.0F;
+							drawTexturedModalRect(var20 + var16 - 12, var47, 0 + var50 * 10, 176 + var49 * 8, 10, 8);
+							GL11.glPushMatrix();
+							GL11.glScalef(0.5F, 0.5F, 0.5F);
+							GL11.glDisable(GL11.GL_DEPTH_TEST);
+							String ms = var46.responseTime + " ms.";
+							fr.drawStringWithShadow(ms, (var20 + var16 - 9 - fr.getStringWidth(ms) / 2) * 2, var47 * 2, 16777215);
+							glEnable(GL11.GL_DEPTH_TEST);
+							glPopMatrix();
+							zLevel -= 100.0F;
 						}
-						glEnable(GL_DEPTH_TEST);
-						glPopMatrix();
-			}
-		}
+					}
+				}
+
+				Collection<PotionEffect> potions = mc.thePlayer.getActivePotionEffects();
+				int xPotOffset = 0;
+				int yPotOffset = 0;
+				int itr = 0;
+				for (PotionEffect effect : potions) {
+					Potion pot = Potion.potionTypes[effect.getPotionID()];
+					if (itr % 8 == 0) {
+						xPotOffset = 0;
+						yPotOffset += 1;
+					}
+					String effectStr = Potion.getDurationString(effect);
+					drawDoubleOutlinedBox(width - 30 - xPotOffset * 21, height - 9 - yPotOffset * 28, fr.getStringWidth(effectStr) / 2 + 2, 8, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+					drawDoubleOutlinedBox(width - 30 - xPotOffset * 21, height - 26 - yPotOffset * 28, 18, 18, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+					GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+					GL11.glDisable(GL11.GL_LIGHTING);
+					glDisable(GL_DEPTH_TEST);
+					int index = pot.getStatusIconIndex();
+					mc.renderEngine.bindTexture(mc.renderEngine.getTexture("/gui/inventory.png"));
+					if (pot.hasStatusIcon()) drawTexturedModalRect(width - 30 - xPotOffset * 21, height - 26 - yPotOffset * 28, 0 + index % 8 * 18, 198 + index / 8 * 18, 18, 18);
+					glEnable(GL_DEPTH_TEST);
+
+					String level = StatCollector.translateToLocal("enchantment.level." + (effect.getAmplifier() + 1));
+
+					if (level.length() < 5 && !level.equals(StatCollector.translateToLocal("enchantment.level.1"))) fr.drawStringWithShadow(level, width - 29 - xPotOffset * 21, height - 25 - yPotOffset * 28, 0xFFFFFF);
+
+					glPushMatrix();
+					glScalef(0.5F, 0.5F, 0.5F);
+					fr.drawStringWithShadow((effect.func_82720_e() ? ColorCode.RED : "") + effectStr, (width - 29 - xPotOffset * 21) * 2, (height - 6 - yPotOffset * 28) * 2, 0xFFFFFF);
+					glPopMatrix();
+					++itr;
+					++xPotOffset;
+				}
+
+				tooltip: {
+					if (KeyRegister.showTooltipKB.pressed) {
+						ItemStack stack = mc.thePlayer.getCurrentEquippedItem();
+						if (stack == null) break tooltip;
+						int loc = mc.thePlayer.inventory.currentItem;
+
+						int x = width / 2 - 88 + loc * 20;
+						int y = height - 20;
+
+						List<String> tokensList = stack.getTooltip(mc.thePlayer, mc.gameSettings.advancedItemTooltips);
+						if (tokensList.isEmpty()) break tooltip;
+
+						glPushMatrix();
+						glDisable(GL_DEPTH_TEST);
+
+						int lenght = 12;
+						for (String s : tokensList)
+							lenght = Math.max(lenght, fr.getStringWidth(s));
+								drawDoubleOutlinedBox(x, y - tokensList.size() * 12 - 5, lenght + 4, tokensList.size() * 12, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+								int i = 1;
+								for (String s : tokensList) {
+									if (i == 1) s = "\u00a7" + Integer.toHexString(stack.getRarity().rarityColor) + s;
+									else s = "\u00a77" + s;
+									if (i == 1) fr.drawStringWithShadow(s, x + 2, y - (tokensList.size() + 1) * 12 + i * 12 - 3, 0xFFFFFF);
+									else fr.drawString(s, x + 2, y - (tokensList.size() + 1) * 12 + i * 12 - 3, 0xFFFFFF);
+									++i;
+								}
+								glEnable(GL_DEPTH_TEST);
+								glPopMatrix();
+					}
+				}
 	}
 
 	public void drawDoubleOutlinedBox(int x, int y, int width, int height, int color, int outlineColor) {
@@ -677,8 +690,8 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glColor4f(1F, 1F, 1F, par1);
 		glBindTexture(GL_TEXTURE_2D, mc.renderEngine.getTexture("/terrain.png"));
-		float var4 = (Block.portal.blockIndexInTexture % 16) / 16.0F;
-		float var5 = (Block.portal.blockIndexInTexture / 16) / 16.0F;
+		float var4 = Block.portal.blockIndexInTexture % 16 / 16.0F;
+		float var5 = Block.portal.blockIndexInTexture / 16 / 16.0F;
 		float var6 = (Block.portal.blockIndexInTexture % 16 + 1) / 16.0F;
 		float var7 = (Block.portal.blockIndexInTexture / 16 + 1) / 16.0F;
 		Tessellator tess = Tessellator.instance;

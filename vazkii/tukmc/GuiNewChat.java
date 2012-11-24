@@ -20,6 +20,7 @@ public class GuiNewChat extends net.minecraft.src.GuiNewChat {
 	private final List sentMessages = new ArrayList();
 	private final List chatLines = new ArrayList();
 	private int field_73768_d = 0;
+
 	public GuiNewChat(Minecraft par1Minecraft) {
 		super(par1Minecraft);
 		mc = par1Minecraft;
@@ -96,9 +97,7 @@ public class GuiNewChat extends net.minecraft.src.GuiNewChat {
 		while (var5.hasNext()) {
 			String var6 = (String) var5.next();
 
-			if (var3 && field_73768_d > 0) {
-				scroll(1);
-			}
+			if (var3 && field_73768_d > 0) scroll(1);
 
 			if (!var4) var6 = " " + var6;
 
@@ -132,9 +131,7 @@ public class GuiNewChat extends net.minecraft.src.GuiNewChat {
 
 		if (field_73768_d > var2 - 14) field_73768_d = var2 - 14;
 
-		if (field_73768_d <= 0) {
-			field_73768_d = 0;
-		}
+		if (field_73768_d <= 0) field_73768_d = 0;
 	}
 
 	@Override

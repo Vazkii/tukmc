@@ -16,7 +16,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javaQuery.j2ee.tinyURL;
 
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
@@ -63,7 +62,7 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 		int box = (x - 9) / ((192 - 28) / CHARS.length()) - 1;
 		boolean is = y >= 202 && y <= 223 && x >= 28 && x <= 192;
 		for (int i = 0; i < CHARS.length(); i++) {
-			drawDoubleOutlinedBox(15 + i * 12, height - (is && i == box ? 114 : 112), 9, (is && box == i ? 12 : 10), BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+			drawDoubleOutlinedBox(15 + i * 12, height - (is && i == box ? 114 : 112), 9, is && box == i ? 12 : 10, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 			fontRenderer.drawStringWithShadow("" + CHARS.charAt(i), 17 + i * 12, height - 111, 0xFFFFFF);
 		}
 		if (tooltip != "") {
@@ -72,7 +71,7 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 			for (String s : tokens)
 				length = Math.max(length, fontRenderer.getStringWidth(s));
 					drawDoubleOutlinedBox(14, height - 114 - tokens.length * 12, length + 6, tokens.length * 12, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-					if(box <= CHARS.length()-1) {
+					if (box <= CHARS.length() - 1) {
 						drawOutlinedBox(15 + box * 12, height - 114, 9, 1, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 						drawSolidRect(14 + box * 12, height - 115, 26 + box * 12, height - 114, BOX_INNER_COLOR);
 						drawSolidRect(15 + box * 12, height - 115, 24 + box * 12, height - 112, BOX_INNER_COLOR);
@@ -124,8 +123,8 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 			case 6:
 				tooltip = "Unpins the text pinned to the screen.";
 				break;
-			case 4 :
-				tooltip = (mod_TukMC.displayNotification ? "Disables" : "Enables")+ " notifications for new messages.";
+			case 4:
+				tooltip = (mod_TukMC.displayNotification ? "Disables" : "Enables") + " notifications for new messages.";
 				break;
 		}
 		else tooltip = "";
@@ -200,11 +199,11 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 					mod_TukMC.setPinnedMsg("");
 					break;
 				}
-				case 4 : {
+				case 4: {
 					mod_TukMC.setDisplayNotification(!mod_TukMC.displayNotification);
 					break;
 				}
-		}
+			}
 		}
 		if (par3 == 0 && mc.gameSettings.chatLinks) {
 			ChatClickData var4 = mc.ingameGUI.getChatGUI().func_73766_a(Mouse.getX() * 2, Mouse.getY() * 2);
@@ -245,7 +244,7 @@ public class GuiChat extends net.minecraft.src.GuiChat {
 			return null;
 		}
 	}
-	
+
 	public void drawOutlinedBox(int x, int y, int width, int height, int color, int outlineColor) {
 		glPushMatrix();
 		glScalef(0.5F, 0.5F, 0.5F);

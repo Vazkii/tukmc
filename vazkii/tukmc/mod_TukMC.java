@@ -69,7 +69,7 @@ public class mod_TukMC {
 		cmp.setBoolean("closeOnFinish", b);
 		IOUtils.injectNBTToFile(cmp, cacheFile);
 	}
-	
+
 	public static void setDisplayNotification(boolean b) {
 		displayNotification = b;
 		NBTTagCompound cmp = IOUtils.getTagCompoundInFile(cacheFile);

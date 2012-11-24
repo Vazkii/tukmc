@@ -13,10 +13,10 @@ import cpw.mods.fml.common.TickType;
 public class TickHandler implements ITickHandler {
 
 	public static boolean ticked = false;
-	
+
 	private static int lastRemoval = 0;
 	private static int msgs = 0;
-	
+
 	@Override
 	public void tickStart(EnumSet<TickType> type, Object... tickData) {
 	}
@@ -27,26 +27,25 @@ public class TickHandler implements ITickHandler {
 			CommonUtils.getMc().ingameGUI = new vazkii.tukmc.GuiIngame();
 			ticked = true;
 		}
-		
+
 		GuiScreen gui = CommonUtils.getMc().currentScreen;
-		if ((gui != null && gui instanceof GuiChat && !(gui instanceof vazkii.tukmc.GuiChat)) || (mod_TukMC.shouldReopenChat && (gui == null || !(gui instanceof GuiChat)))) CommonUtils.getMc().displayGuiScreen(new vazkii.tukmc.GuiChat());
+		if (gui != null && gui instanceof GuiChat && !(gui instanceof vazkii.tukmc.GuiChat) || mod_TukMC.shouldReopenChat && (gui == null || !(gui instanceof GuiChat))) CommonUtils.getMc().displayGuiScreen(new vazkii.tukmc.GuiChat());
 		mod_TukMC.shouldReopenChat = false;
-		
-		if(type.equals(EnumSet.of(TickType.CLIENT))) {
-			if(lastRemoval > 0)
-				--lastRemoval;
-			if(lastRemoval <= 0 && msgs > 0){
+
+		if (type.equals(EnumSet.of(TickType.CLIENT))) {
+			if (lastRemoval > 0) --lastRemoval;
+			if (lastRemoval <= 0 && msgs > 0) {
 				--msgs;
 				lastRemoval = 10;
 			}
 		}
 	}
-	
+
 	public static void addMsg() {
 		msgs++;
 		lastRemoval = 40;
 	}
-	
+
 	public static int getMsgs() {
 		return msgs;
 	}
