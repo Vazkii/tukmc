@@ -66,6 +66,7 @@ import net.minecraft.src.MathHelper;
 import net.minecraft.src.NetClientHandler;
 import net.minecraft.src.Potion;
 import net.minecraft.src.PotionEffect;
+import net.minecraft.src.RenderBlocks;
 import net.minecraft.src.RenderEngine;
 import net.minecraft.src.RenderHelper;
 import net.minecraft.src.RenderItem;
@@ -73,6 +74,7 @@ import net.minecraft.src.ScaledResolution;
 import net.minecraft.src.StatCollector;
 import net.minecraft.src.Tessellator;
 
+import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.common.ForgeHooks;
 
 public class GuiIngame extends net.minecraft.src.GuiIngame {
@@ -235,7 +237,7 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 
 		drawDoubleOutlinedBox(width - 180, height - 20, 140, 16, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 		fr.drawStringWithShadow("FPS: " + ClientUtils.getFPS(), width - 176, height - 16, 0xFFFFFF);
-		String ping = ClientUtils.getPing() + "ms." + (mc.isIntegratedServerRunning() ? mc.isSingleplayer() ? " (SP)" : " (LAN)" : " (MP)");
+		String ping = mc.isSingleplayer() ? "N/A (SP)" : (ClientUtils.getPing() + " ms." + (mc.isIntegratedServerRunning() ? " (LAN)" : " (MP)"));
 		fr.drawStringWithShadow(ping, width - 44 - fr.getStringWidth(ping), height - 16, 0xFFFFFF);
 
 		if (recordIsPlaying) {
@@ -267,7 +269,8 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 		int posZ = MathHelper.floor_double(mc.thePlayer.posZ);
 		Chunk chunk = mc.theWorld.getChunkFromBlockCoords(posX, posZ);
 		String biomeName = chunk.getBiomeGenForWorldCoords(posX & 15, posZ & 15, mc.theWorld.getWorldChunkManager()).biomeName;
-
+		int blockLight = chunk.getSavedLightValue(EnumSkyBlock.Block, posX & 15, posY, posZ & 15);
+		
 		if (mc.gameSettings.showDebugInfo) {
 			glPushMatrix();
 			fr.drawStringWithShadow("Minecraft " + MC_VERSION + " (" + mc.debug + ")", 2, 2, 0xFFFFFF);
@@ -289,7 +292,7 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 			int direction = MathHelper.floor_double(mc.thePlayer.rotationYaw * 4.0F / 360.0F + 0.5D) & 3;
 			drawString(fr, "f: " + direction + " (" + Direction.directions[direction] + ") / " + MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw), 2, 88, 14737632);
 
-			if (mc.theWorld != null && mc.theWorld.blockExists(posX, posY, posZ)) drawString(fr, "lc: " + (chunk.getTopFilledSegment() + 15) + " b: " + biomeName + " bl: " + chunk.getSavedLightValue(EnumSkyBlock.Block, posX & 15, posY, posZ & 15) + " sl: " + chunk.getSavedLightValue(EnumSkyBlock.Sky, posX & 15, posY, posZ & 15) + " rl: " + chunk.getBlockLightValue(posX & 15, posY, posZ & 15, 0), 2, 96, 14737632);
+			if (mc.theWorld != null && mc.theWorld.blockExists(posX, posY, posZ)) drawString(fr, "lc: " + (chunk.getTopFilledSegment() + 15) + " b: " + biomeName + " bl: " + blockLight + " sl: " + chunk.getSavedLightValue(EnumSkyBlock.Sky, posX & 15, posY, posZ & 15) + " rl: " + chunk.getBlockLightValue(posX & 15, posY, posZ & 15, 0), 2, 96, 14737632);
 			drawString(fr, String.format("ws: %.3f, fs: %.3f, g: %b, fl: %d", Float.valueOf(mc.thePlayer.capabilities.getWalkSpeed()), Float.valueOf(mc.thePlayer.capabilities.getFlySpeed()), Boolean.valueOf(mc.thePlayer.onGround), Integer.valueOf(mc.theWorld.getHeightValue(posX, posZ))), 2, 104, 14737632);
 			glPopMatrix();
 		}
@@ -315,7 +318,18 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 
 				drawDoubleOutlinedBox(width / 2 - size / 2 - 3, -1, size + 6, 15, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 				fr.drawStringWithShadow(topData, width / 2 - size / 2, 4, 0xFFFFFF);
-
+				
+				if(blockLight < 7) {
+					String light = ColorCode.RED + "Danger Zone! Light [" + blockLight + "]";
+					int lightLenght = fr.getStringWidth(light);
+					drawDoubleOutlinedBox(width - 39  - lightLenght, 25, lightLenght + 20, 16, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+					RenderItem ir = new RenderItem();
+					RenderHelper.enableGUIStandardItemLighting();
+					ir.renderItemIntoGUI(fr, mc.renderEngine, new ItemStack(Item.skull, 1, 4), width - 38 - lightLenght, 25);
+					RenderHelper.disableStandardItemLighting();
+					fr.drawStringWithShadow(light, width - 22  - lightLenght, 29, 0xFFFFFF);
+				}
+				
 				if (BossStatus.bossName != null && BossStatus.field_82826_b > 0) {
 					drawDoubleOutlinedBox(width / 2 - 126, 34, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 					drawDoubleOutlinedBox(width / 2 + 121, 34, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
@@ -529,6 +543,9 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 		ItemStack stack = mc.thePlayer.inventory.mainInventory[slot];
 
 		if (stack != null) {
+			if(ForgeHooksClient.renderInventoryItem(new RenderBlocks(), render, stack, itemRenderer.field_77024_a, zLevel, (float)x, (float)y))
+				return;
+			
 			int dmg = stack.getItemDamageForDisplay();
 			int color = (int) Math.round(255.0D - dmg * 255.0D / stack.getMaxDamage());
 			int shiftedColor = 255 - color << 16 | color << 8;
@@ -568,14 +585,7 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 				glPushMatrix();
 				glScalef(0.5F, 0.5F, 0.5F);
 				font.drawStringWithShadow(dmgStr, (x + 16 - font.getStringWidth(dmgStr) / 2) * 2, (y + 11) * 2, dmg == 0 ? 0xFFFFFF : shiftedColor);
-				if (unbreakLvl > 0) font.drawStringWithShadow(ColorCode.PINK + "" + /*
-				 * StatCollector
-				 * .
-				 * translateToLocal
-				 * (
-				 * "enchantment.level."
-				 * +
-				 */unbreakLvl/* ) */, (x + 1) * 2, (y + 1) * 2, 0xFFFFFF);
+				if (unbreakLvl > 0) font.drawStringWithShadow(ColorCode.PINK + "" + unbreakLvl, (x + 1) * 2, (y + 1) * 2, 0xFFFFFF);
 				glScalef(1F, 1F, 1F);
 				glPopMatrix();
 

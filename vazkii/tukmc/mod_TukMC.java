@@ -20,7 +20,7 @@ import cpw.mods.fml.common.registry.TickRegistry;
 
 import net.minecraftforge.common.MinecraftForge;
 
-@Mod(modid = "tukmc_Vz", name = "TukMC", version = "by Vazkii. Version [1.0.1] for 1.4.4/5")
+@Mod(modid = "tukmc_Vz", name = "TukMC", version = "by Vazkii. Version [1.0.2] for 1.4.4/5")
 public class mod_TukMC {
 
 	public static File cacheFile;
@@ -29,6 +29,7 @@ public class mod_TukMC {
 	public static boolean spellcheckerEnabled = true;
 	public static boolean closeOnFinish = false;
 	public static boolean displayNotification = true;
+	public static boolean formatMessage = true;
 
 	public static boolean shouldReopenChat = false;
 
@@ -46,6 +47,7 @@ public class mod_TukMC {
 		displayNotification = cmp.hasKey("displayNotification") ? cmp.getBoolean("displayNotification") : true;
 		closeOnFinish = cmp.hasKey("closeOnFinish") ? cmp.getBoolean("closeOnFinish") : false;
 		pinnedMsg = cmp.hasKey("pinnnedMsg") ? cmp.getString("pinnnedMsg") : "";
+		formatMessage = cmp.hasKey("formatMessage") ? cmp.getBoolean("formatMessage") : true;
 		new TukMCUpdateHandler(ModConverter.getMod(getClass()));
 	}
 
@@ -75,5 +77,29 @@ public class mod_TukMC {
 		NBTTagCompound cmp = IOUtils.getTagCompoundInFile(cacheFile);
 		cmp.setBoolean("displayNotification", b);
 		IOUtils.injectNBTToFile(cmp, cacheFile);
+	}
+	
+	public static void setFormatMessage(boolean b) {
+		formatMessage = b;
+		NBTTagCompound cmp = IOUtils.getTagCompoundInFile(cacheFile);
+		cmp.setBoolean("formatMessage", b);
+		IOUtils.injectNBTToFile(cmp, cacheFile);
+	}
+	
+	public static void registerOpenWebsite(String s) {
+		NBTTagCompound cmp = IOUtils.getTagCompoundInFile(cacheFile);
+		NBTTagCompound subCmp = !cmp.hasKey("websites") ? new NBTTagCompound() : cmp.getCompoundTag("websites");
+		int visits = subCmp.hasKey(s) ? subCmp.getInteger(s) : 0;
+		subCmp.setInteger(s, visits+1);
+		cmp.setCompoundTag("websites", subCmp);
+		IOUtils.injectNBTToFile(cmp, cacheFile);
+	}
+	
+	public static int getWebsiteViews(String s) {
+		NBTTagCompound cmp = IOUtils.getTagCompoundInFile(cacheFile);
+		if(!cmp.hasKey("websites"))
+			return 0;
+		NBTTagCompound subCmp = cmp.getCompoundTag("websites");
+		return !subCmp.hasKey(s) ? 0 : subCmp.getInteger(s);
 	}
 }

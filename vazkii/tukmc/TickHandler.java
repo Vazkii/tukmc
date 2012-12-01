@@ -6,6 +6,7 @@ import vazkii.codebase.common.CommonUtils;
 
 import net.minecraft.src.GuiChat;
 import net.minecraft.src.GuiScreen;
+import net.minecraft.src.GuiSleepMP;
 
 import cpw.mods.fml.common.ITickHandler;
 import cpw.mods.fml.common.TickType;
@@ -32,6 +33,9 @@ public class TickHandler implements ITickHandler {
 		if (gui != null && gui instanceof GuiChat && !(gui instanceof vazkii.tukmc.GuiChat) || mod_TukMC.shouldReopenChat && (gui == null || !(gui instanceof GuiChat))) CommonUtils.getMc().displayGuiScreen(new vazkii.tukmc.GuiChat());
 		mod_TukMC.shouldReopenChat = false;
 
+		if(gui instanceof GuiSleepMP)
+			((vazkii.tukmc.GuiChat)CommonUtils.getMc().currentScreen).setBed();
+		
 		if (type.equals(EnumSet.of(TickType.CLIENT))) {
 			if (lastRemoval > 0) --lastRemoval;
 			if (lastRemoval <= 0 && msgs > 0) {
