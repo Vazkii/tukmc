@@ -2,6 +2,7 @@ package vazkii.tukmc;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.lwjgl.opengl.GL11;
@@ -18,12 +19,16 @@ import net.minecraft.src.StringUtils;
 public class GuiNewChat extends net.minecraft.src.GuiNewChat {
 	private final Minecraft mc;
 	private final List sentMessages = new ArrayList();
-	private final List chatLines = new ArrayList();
+	private final LinkedList chatLines = new LinkedList();
 	private int field_73768_d = 0;
 
 	public GuiNewChat(Minecraft par1Minecraft) {
 		super(par1Minecraft);
 		mc = par1Minecraft;
+	}
+
+	public LinkedList<TimedChatLine> getChatLines() {
+		return chatLines;
 	}
 
 	@Override
@@ -102,7 +107,7 @@ public class GuiNewChat extends net.minecraft.src.GuiNewChat {
 			if (!var4) var6 = " " + var6;
 
 			var4 = false;
-			chatLines.add(0, new ChatLine(mc.ingameGUI.getUpdateCounter(), var6, par2));
+			chatLines.add(0, new TimedChatLine(mc.ingameGUI.getUpdateCounter(), var6, par2));
 		}
 
 		while (chatLines.size() > 500)

@@ -33,10 +33,10 @@ public class TickHandler implements ITickHandler {
 		if (gui != null && gui instanceof GuiChat && !(gui instanceof vazkii.tukmc.GuiChat) || mod_TukMC.shouldReopenChat && (gui == null || !(gui instanceof GuiChat))) CommonUtils.getMc().displayGuiScreen(new vazkii.tukmc.GuiChat());
 		mod_TukMC.shouldReopenChat = false;
 
-		if(gui instanceof GuiSleepMP)
-			((vazkii.tukmc.GuiChat)CommonUtils.getMc().currentScreen).setBed();
-		
+		if (gui instanceof GuiSleepMP) ((vazkii.tukmc.GuiChat) CommonUtils.getMc().currentScreen).setBed();
+
 		if (type.equals(EnumSet.of(TickType.CLIENT))) {
+			McMMOIntegration.tick();
 			if (lastRemoval > 0) --lastRemoval;
 			if (lastRemoval <= 0 && msgs > 0) {
 				--msgs;

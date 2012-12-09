@@ -46,6 +46,9 @@ import vazkii.codebase.client.ClientUtils;
 import vazkii.codebase.common.ColorCode;
 import vazkii.codebase.common.CommonUtils;
 import vazkii.codebase.common.FormattingCode;
+import vazkii.tukmc.McMMOIntegration.LevelUpData;
+import vazkii.tukmc.McMMOIntegration.SkillData;
+import vazkii.tukmc.McMMOIntegration.SkillData.UsageType;
 import net.minecraft.client.Minecraft;
 
 import net.minecraft.src.Block;
@@ -59,6 +62,7 @@ import net.minecraft.src.FontRenderer;
 import net.minecraft.src.GuiPlayerInfo;
 import net.minecraft.src.InventoryPlayer;
 import net.minecraft.src.Item;
+import net.minecraft.src.ItemBow;
 import net.minecraft.src.ItemFood;
 import net.minecraft.src.ItemStack;
 import net.minecraft.src.Material;
@@ -99,6 +103,7 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 		int height = res.getScaledHeight();
 		int width = res.getScaledWidth();
 		FontRenderer fr = mc.fontRenderer;
+		RenderItem ir = new RenderItem();
 		mc.entityRenderer.setupOverlayRendering();
 		glEnable(GL_BLEND);
 		if (Minecraft.isFancyGraphicsEnabled()) renderVignette(mc.thePlayer.getBrightness(par1), width, height);
@@ -115,22 +120,24 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 
 		glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 		zLevel = -90.0F;
-		drawDoubleOutlinedBox(6, height - 98, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-		drawDoubleOutlinedBox(width - 10, height - 98, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+		if (Config.get(Config.NODE_BOTTOM_ADORNMENTS)) {
+			drawDoubleOutlinedBox(6, height - 98, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+			drawDoubleOutlinedBox(width - 10, height - 98, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+			drawOutlinedBox(50, height - 13, width - 100, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
+			drawOutlinedBox(8, height - 13, 40, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
+			drawOutlinedBox(8, height - 92, 1, 80, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
+			drawOutlinedBox(width - 48, height - 13, 40, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
+			drawOutlinedBox(width - 8, height - 92, 1, 80, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
+			glPushMatrix();
+			glScalef(0.5F, 0.5F, 0.5F);
+			drawSolidRect(15, height * 2 - 27, 23, height * 2 - 23, BOX_OUTLINE_COLOR);
+			drawSolidRect(width * 2 - 18, height * 2 - 27, width * 2 - 13, height * 2 - 23, BOX_OUTLINE_COLOR);
+			drawSolidRect(14, height * 2 - 186, 20, height * 2 - 185, BOX_OUTLINE_COLOR);
+			drawSolidRect(width * 2 - 18, height * 2 - 186, width * 2 - 10, height * 2 - 185, BOX_OUTLINE_COLOR);
+			glPopMatrix();
+		}
 
-		drawOutlinedBox(170, height - 13, width - 260, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
-		drawOutlinedBox(8, height - 13, 40, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
-		drawOutlinedBox(8, height - 92, 1, 80, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
-		drawOutlinedBox(width - 48, height - 13, 40, 1, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
-		drawOutlinedBox(width - 8, height - 92, 1, 80, BOX_OUTLINE_COLOR, BOX_INNER_COLOR);
-		glPushMatrix();
-		glScalef(0.5F, 0.5F, 0.5F);
-		drawSolidRect(15, height * 2 - 27, 23, height * 2 - 23, BOX_OUTLINE_COLOR);
-		drawSolidRect(width * 2 - 18, height * 2 - 27, width * 2 - 13, height * 2 - 23, BOX_OUTLINE_COLOR);
-		drawSolidRect(14, height * 2 - 186, 20, height * 2 - 185, BOX_OUTLINE_COLOR);
-		drawSolidRect(width * 2 - 18, height * 2 - 186, width * 2 - 10, height * 2 - 185, BOX_OUTLINE_COLOR);
-		glPopMatrix();
-		drawDoubleOutlinedBox(width / 2 - 90, height - 22, 180, 20, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+		if (Config.get(Config.NODE_ITEMS_BACKGROUND)) drawDoubleOutlinedBox(width / 2 - 90, height - 22, 180, 20, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 
 		InventoryPlayer inv = mc.thePlayer.inventory;
 		for (int i = 0; i < 9; ++i) {
@@ -140,7 +147,8 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 			boolean isSlot = inv.mainInventory[i] != null;
 
 			if (isSlot) drawDoubleOutlinedBox(i1, i2, 16, 16, isHighlight ? BOX_HIGHLIGHT_COLOR : BOX_INNER_COLOR, inv.mainInventory[i].hasEffect() && !isHighlight ? BOX_EFFECT_OUTLINE_COLOR : BOX_OUTLINE_COLOR);
-			else if (isHighlight) drawDoubleOutlinedBox(i1 + 1, i2 + 1, 14, 14, BOX_HIGHLIGHT_COLOR, BOX_HIGHLIGHT_COLOR);
+			else if (isHighlight) if (!Config.get(Config.NODE_ITEMS_BACKGROUND)) drawDoubleOutlinedBox(i1 + 2, i2 + 2, 12, 12, BOX_INNER_COLOR, BOX_OUTLINE_COLOR, BOX_HIGHLIGHT_COLOR);
+			else drawDoubleOutlinedBox(i1 + 1, i2 + 1, 14, 14, BOX_HIGHLIGHT_COLOR, BOX_HIGHLIGHT_COLOR);
 		}
 		glEnable(GL_RESCALE_NORMAL);
 		RenderHelper.enableGUIStandardItemLighting();
@@ -177,13 +185,12 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 						if (food + foodHeal > 20) overkill = true;
 					}
 				}
-				if (barWidth > 0) drawSolidGradientRect(width / 2 - 90, height - 29, barWidth * 4, 4, overkill ? 0 : 0xd82424, 0x901414);
+				if (barWidth > 0 && Config.get(Config.NODE_FOOD_PREDICT)) drawSolidGradientRect(width / 2 - 90, height - 29, barWidth * 4, 4, overkill ? 0 : 0xd82424, 0x901414);
 			}
 			drawSolidGradientRect(width / 2 - 90, height - 29, food * 4, 4, hasPotion(Potion.hunger) ? 0x0c1702 : 0x6a410b, hasPotion(Potion.hunger) ? 0x1d3208 : 0x8e5409);
 			glPushMatrix();
 			glScalef(0.5F, 0.5F, 0.5F);
-			if (foodHeal > 0) fr.drawString("Will Heal: " + foodHeal + (overkill ? " (Over " + (food + foodHeal - 20) + ")" : ""), width - 178, height * 2 - 57, 0xFFFFFF);
-
+			if (foodHeal > 0 && Config.get(Config.NODE_FOOD_PREDICT)) fr.drawString("Will Heal: " + foodHeal + (overkill ? " (Over " + (food + foodHeal - 20) + ")" : ""), width - 178, height * 2 - 57, 0xFFFFFF);
 			fr.drawStringWithShadow((hp < 5 ? ColorCode.RED : "") + "" + hp, width - 33, height * 2 - 84, 0xFFFFFF);
 			fr.drawStringWithShadow((food < 5 ? ColorCode.RED : "") + "" + food, width - 33, height * 2 - 58, 0xFFFFFF);
 			glPopMatrix();
@@ -214,14 +221,16 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 			}
 		}
 
-		String status = "";
-		int fallDmg = MathHelper.ceiling_float_int(mc.thePlayer.fallDistance - 3.0F);
-		if (mc.thePlayer.isSneaking()) status = "Sneaking";
-		if (mc.thePlayer.isSprinting()) status = "Sprinting";
-		else if (mc.thePlayer.getFoodStats().getFoodLevel() <= 6) status = ColorCode.RED + "Can't Sprint";
-		if (mc.thePlayer.capabilities.isFlying) status = "Flying";
-		else if (fallDmg > 0 && !mc.thePlayer.capabilities.isCreativeMode) status = "Falling: " + ColorCode.RED + fallDmg;
-		fr.drawStringWithShadow(mc.thePlayer.username + (status.equals("") ? "" : " - ") + status, width / 2 + 9, height - 33 - (shouldDrawHUD ? 8 : 0), 0xFFFFFF);
+		if (Config.get(Config.NODE_STATUS_DISPLAY)) {
+			String status = "";
+			int fallDmg = MathHelper.ceiling_float_int(mc.thePlayer.fallDistance - 3.0F);
+			if (mc.thePlayer.isSneaking()) status = "Sneaking";
+			if (mc.thePlayer.isSprinting()) status = "Sprinting";
+			else if (mc.thePlayer.getFoodStats().getFoodLevel() <= 6) status = ColorCode.RED + "Can't Sprint";
+			if (mc.thePlayer.capabilities.isFlying) status = "Flying";
+			else if (fallDmg > 0 && !mc.thePlayer.capabilities.isCreativeMode) status = "Falling: " + ColorCode.RED + fallDmg;
+			fr.drawStringWithShadow(mc.thePlayer.username + (status.equals("") ? "" : " - ") + status, width / 2 + 9, height - 33 - (shouldDrawHUD ? 8 : 0), 0xFFFFFF);
+		}
 
 		glBindTexture(GL_TEXTURE_2D, mc.renderEngine.getTexture("/gui/icons.png"));
 		glEnable(GL_BLEND);
@@ -229,18 +238,22 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 		drawTexturedModalRect(width / 2 - 7, height / 2 - 7, 0, 0, 16, 16);
 		glDisable(GL_BLEND);
 
-		drawDoubleOutlinedBox(40, height - 20, 140, 16, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-		fr.drawStringWithShadow("Online: " + mc.thePlayer.sendQueue.playerInfoList.size(), 44, height - 16, 0xFFFFFF);
-		int armorValue = ForgeHooks.getTotalArmorValue(mc.thePlayer);
-		String armor = armorValue > 0 ? "Armor: " + armorValue * 5 + "%" : "Unarmored";
-		fr.drawStringWithShadow(armor, 176 - fr.getStringWidth(armor), height - 16, 0xFFFFFF);
+		if (Config.get(Config.NODE_LEFT_BAR)) {
+			drawDoubleOutlinedBox(40, height - 20, 140, 16, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+			fr.drawStringWithShadow("Online: " + mc.thePlayer.sendQueue.playerInfoList.size(), 44, height - 16, 0xFFFFFF);
+			int armorValue = ForgeHooks.getTotalArmorValue(mc.thePlayer);
+			String armor = armorValue > 0 ? "Armor: " + armorValue * 5 + "%" : "Unarmored";
+			fr.drawStringWithShadow(armor, 176 - fr.getStringWidth(armor), height - 16, 0xFFFFFF);
+		}
 
-		drawDoubleOutlinedBox(width - 180, height - 20, 140, 16, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-		fr.drawStringWithShadow("FPS: " + ClientUtils.getFPS(), width - 176, height - 16, 0xFFFFFF);
-		String ping = mc.isSingleplayer() ? "N/A (SP)" : (ClientUtils.getPing() + " ms." + (mc.isIntegratedServerRunning() ? " (LAN)" : " (MP)"));
-		fr.drawStringWithShadow(ping, width - 44 - fr.getStringWidth(ping), height - 16, 0xFFFFFF);
+		if (Config.get(Config.NODE_RIGHT_BAR)) {
+			drawDoubleOutlinedBox(width - 180, height - 20, 140, 16, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+			fr.drawStringWithShadow("FPS: " + ClientUtils.getFPS(), width - 176, height - 16, 0xFFFFFF);
+			String ping = mc.isSingleplayer() ? "N/A (SP)" : ClientUtils.getPing() + " ms." + (mc.isIntegratedServerRunning() ? " (LAN)" : " (MP)");
+			fr.drawStringWithShadow(ping, width - 44 - fr.getStringWidth(ping), height - 16, 0xFFFFFF);
+		}
 
-		if (recordIsPlaying) {
+		if (recordIsPlaying && Config.get(Config.NODE_MUSIC)) {
 			float color = recordPlayingUpFor - par1;
 			int colorValue = (int) (color * 256.0F / 20.0F);
 			int colorRgb = 0xFFFFFF;
@@ -270,7 +283,8 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 		Chunk chunk = mc.theWorld.getChunkFromBlockCoords(posX, posZ);
 		String biomeName = chunk.getBiomeGenForWorldCoords(posX & 15, posZ & 15, mc.theWorld.getWorldChunkManager()).biomeName;
 		int blockLight = chunk.getSavedLightValue(EnumSkyBlock.Block, posX & 15, posY, posZ & 15);
-		
+		int direction = MathHelper.floor_double(mc.thePlayer.rotationYaw * 4.0F / 360.0F + 0.5D) & 3;
+
 		if (mc.gameSettings.showDebugInfo) {
 			glPushMatrix();
 			fr.drawStringWithShadow("Minecraft " + MC_VERSION + " (" + mc.debug + ")", 2, 2, 0xFFFFFF);
@@ -289,7 +303,6 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 			drawString(fr, String.format("x: %.5f (%d) // c: %d (%d)", Double.valueOf(mc.thePlayer.posX), Integer.valueOf(posX), Integer.valueOf(posX >> 4), Integer.valueOf(posX & 15)), 2, 64, 14737632);
 			drawString(fr, String.format("y: %.3f (feet pos, %.3f eyes pos)", Double.valueOf(mc.thePlayer.boundingBox.minY), Double.valueOf(mc.thePlayer.posY)), 2, 72, 14737632);
 			drawString(fr, String.format("z: %.5f (%d) // c: %d (%d)", Double.valueOf(mc.thePlayer.posZ), Integer.valueOf(posZ), Integer.valueOf(posZ >> 4), Integer.valueOf(posZ & 15)), 2, 80, 14737632);
-			int direction = MathHelper.floor_double(mc.thePlayer.rotationYaw * 4.0F / 360.0F + 0.5D) & 3;
 			drawString(fr, "f: " + direction + " (" + Direction.directions[direction] + ") / " + MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw), 2, 88, 14737632);
 
 			if (mc.theWorld != null && mc.theWorld.blockExists(posX, posY, posZ)) drawString(fr, "lc: " + (chunk.getTopFilledSegment() + 15) + " b: " + biomeName + " bl: " + blockLight + " sl: " + chunk.getSavedLightValue(EnumSkyBlock.Sky, posX & 15, posY, posZ & 15) + " rl: " + chunk.getBlockLightValue(posX & 15, posY, posZ & 15, 0), 2, 96, 14737632);
@@ -297,7 +310,32 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 			glPopMatrix();
 		}
 
-		presistentChatGui.drawChat(getUpdateCounter());
+		if (Config.get(Config.NODE_MCMMO)) {
+			LevelUpData lvlData = McMMOIntegration.getActiveLevelUpData();
+			if (lvlData != null) {
+				String levelUp = ColorCode.RED + "Level Up!";
+				String skillLeveledUp = ColorCode.YELLOW + lvlData.getSkill() + ": [" + lvlData.getLevel() + "]";
+				glPushMatrix();
+				glScalef(2F, 2F, 2F);
+				fr.drawStringWithShadow(levelUp, width / 4 - fr.getStringWidth(levelUp) / 2, 15, 0xFFFFFF);
+				glPopMatrix();
+				fr.drawStringWithShadow(skillLeveledUp, width / 2 - fr.getStringWidth(skillLeveledUp) / 2, 52, 0xFFFFFF);
+			}
+
+			int maxSize = 20;
+			for (SkillData skillData : McMMOIntegration.skillData)
+				maxSize = Math.max(fr.getStringWidth((skillData.type == UsageType.READY ? skillData.getTool().charAt(0) + skillData.getTool().substring(1).toLowerCase() : skillData.getName()) + ": " + skillData.type.getName()), maxSize);
+
+					if (McMMOIntegration.skillData.size() > 0) drawDoubleOutlinedBox(10, 58, maxSize + 4, McMMOIntegration.skillData.size() * 11 + 6, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+					int i = 0;
+					for (SkillData skillData : McMMOIntegration.skillData) {
+						fr.drawStringWithShadow((skillData.type == UsageType.READY ? skillData.getTool().charAt(0) + skillData.getTool().substring(1).toLowerCase() : skillData.getName()) + ": " + skillData.type.getName(), 12, 60 + i * 12, 0xFFFFFF);
+						++i;
+					}
+		}
+
+		if (Config.get(Config.NODE_SHOW_CHAT)) presistentChatGui.drawChat(getUpdateCounter());
+
 		if (TickHandler.getMsgs() != 0 && mod_TukMC.displayNotification) {
 			String s = "! " + ColorCode.RED + TickHandler.getMsgs() + ColorCode.WHITE + " !";
 			drawDoubleOutlinedBox(199, height - 80, fr.getStringWidth(s) + 6, 12, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
@@ -313,24 +351,45 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 		for (ItemStack element : mc.thePlayer.inventory.mainInventory)
 			if (element == null) ++invSlots;
 
-				String topData = biomeName + " | " + time + " | Inv: " + invSlots;
-				int size = fr.getStringWidth(topData);
+				if (Config.get(Config.NODE_TOP_BAR)) {
+					String topData = biomeName + " | " + time + " | Inv: " + invSlots;
+					int size = fr.getStringWidth(topData);
 
-				drawDoubleOutlinedBox(width / 2 - size / 2 - 3, -1, size + 6, 15, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-				fr.drawStringWithShadow(topData, width / 2 - size / 2, 4, 0xFFFFFF);
-				
-				if(blockLight < 7) {
-					String light = ColorCode.RED + "Danger Zone! Light [" + blockLight + "]";
-					int lightLenght = fr.getStringWidth(light);
-					drawDoubleOutlinedBox(width - 39  - lightLenght, 25, lightLenght + 20, 16, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
-					RenderItem ir = new RenderItem();
+					if (mc.thePlayer.inventory.hasItem(Item.compass.shiftedIndex)) drawDoubleOutlinedBox(width / 2 - size / 2 - 23, -1, 18, 18, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+					if (mc.thePlayer.inventory.hasItem(Item.pocketSundial.shiftedIndex)) drawDoubleOutlinedBox(width / 2 + size / 2 + 5, -1, 18, 18, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+
 					RenderHelper.enableGUIStandardItemLighting();
-					ir.renderItemIntoGUI(fr, mc.renderEngine, new ItemStack(Item.skull, 1, 4), width - 38 - lightLenght, 25);
+					if (mc.thePlayer.inventory.hasItem(Item.compass.shiftedIndex)) ir.renderItemIntoGUI(fr, mc.renderEngine, new ItemStack(Item.compass), width / 2 - size / 2 - 22, 0);
+					if (mc.thePlayer.inventory.hasItem(Item.pocketSundial.shiftedIndex)) ir.renderItemIntoGUI(fr, mc.renderEngine, new ItemStack(Item.pocketSundial), width / 2 + size / 2 + 6, 0);
 					RenderHelper.disableStandardItemLighting();
-					fr.drawStringWithShadow(light, width - 22  - lightLenght, 29, 0xFFFFFF);
+
+					drawDoubleOutlinedBox(width / 2 - size / 2 - 3, -1, size + 6, 15, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+					fr.drawStringWithShadow(topData, width / 2 - size / 2, 4, 0xFFFFFF);
 				}
-				
-				if (BossStatus.bossName != null && BossStatus.field_82826_b > 0) {
+
+				if (blockLight < 7 && Config.get(Config.NODE_DANGER_DISPLAY)) {
+					String light = (Config.get(Config.NODE_COLORBLIND_MODE) ? "" : ColorCode.RED) + "Danger Zone!";
+					int lightLenght = fr.getStringWidth(light);
+					drawDoubleOutlinedBox(39, 25, lightLenght + 20, 16, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
+					RenderHelper.enableGUIStandardItemLighting();
+					ir.renderItemIntoGUI(fr, mc.renderEngine, new ItemStack(Item.skull, 1, 4), 40, 25);
+					RenderHelper.disableStandardItemLighting();
+					fr.drawStringWithShadow(light, 56, 29, 0xFFFFFF);
+				}
+
+				if (mc.thePlayer.getCurrentEquippedItem() != null && mc.thePlayer.getCurrentEquippedItem().getItem() instanceof ItemBow && Config.get(Config.NODE_SHOW_ARROWS)) {
+					glPushMatrix();
+					glScalef(0.5F, 0.5F, 0.5F);
+					int allArrows = 0;
+					for (ItemStack stack : mc.thePlayer.inventory.mainInventory)
+						if (stack != null && stack.itemID == Item.arrow.shiftedIndex) allArrows += stack.stackSize;
+							String arrowStr = (allArrows <= 8 && !Config.get(Config.NODE_COLORBLIND_MODE) ? ColorCode.RED : "") + "Arrows: " + allArrows;
+							int arrowStrWidth = fr.getStringWidth(arrowStr);
+							fr.drawStringWithShadow(arrowStr, width - arrowStrWidth / 2, height - 21, 0xFFFFFF);
+							glPopMatrix();
+				}
+
+				if (BossStatus.bossName != null && BossStatus.field_82826_b > 0 && Config.get(Config.NODE_BOSS_BAR)) {
 					drawDoubleOutlinedBox(width / 2 - 126, 34, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 					drawDoubleOutlinedBox(width / 2 + 121, 34, 5, 5, BOX_INNER_COLOR, BOX_OUTLINE_COLOR);
 
@@ -411,7 +470,7 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 				int xPotOffset = 0;
 				int yPotOffset = 0;
 				int itr = 0;
-				for (PotionEffect effect : potions) {
+				if (Config.get(Config.NODE_BUFFS)) for (PotionEffect effect : potions) {
 					Potion pot = Potion.potionTypes[effect.getPotionID()];
 					if (itr % 8 == 0) {
 						xPotOffset = 0;
@@ -543,12 +602,11 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 		ItemStack stack = mc.thePlayer.inventory.mainInventory[slot];
 
 		if (stack != null) {
-			if(ForgeHooksClient.renderInventoryItem(new RenderBlocks(), render, stack, itemRenderer.field_77024_a, zLevel, (float)x, (float)y))
-				return;
-			
+			if (ForgeHooksClient.renderInventoryItem(new RenderBlocks(), render, stack, itemRenderer.field_77024_a, zLevel, x, y)) return;
+
 			int dmg = stack.getItemDamageForDisplay();
 			int color = (int) Math.round(255.0D - dmg * 255.0D / stack.getMaxDamage());
-			int shiftedColor = 255 - color << 16 | color << 8;
+			int shiftedColor = Config.get(Config.NODE_COLORBLIND_MODE) ? 0xFFFFFF : 255 - color << 16 | color << 8;
 			Color shiftedColor1 = new Color(shiftedColor);
 
 			if (stack != null && stack.hasEffect()) {
@@ -561,7 +619,7 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 				if (mc.thePlayer.inventory.currentItem == slot) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				else glBlendFunc(GL_DST_COLOR, GL_DST_COLOR);
 				if (slot == mc.thePlayer.inventory.currentItem) {
-					if (!stack.isItemDamaged()) glColor4f(0.5F, 0.25F, 0.8F, 0.4F);
+					if (!stack.isItemDamaged() || Config.get(Config.NODE_COLORBLIND_MODE)) glColor4f(0.5F, 0.25F, 0.8F, 0.4F);
 					else glColor4f(shiftedColor1.getRed() / 255F, shiftedColor1.getGreen() / 255F, shiftedColor1.getBlue() / 255F, 0.4F);
 					renderGlint(x * 431278612 + y * 32178161, x, y, 16, 16);
 				}
@@ -579,7 +637,7 @@ public class GuiIngame extends net.minecraft.src.GuiIngame {
 			int offset = 0;
 
 			if (stack.isItemStackDamageable()) {
-				String dmgStr = "" + (stack.getMaxDamage() - dmg + 1);
+				String dmgStr = "" + (Config.get(Config.NODE_NUMERICAL_DAMAGE_DISPLAY) ? stack.getMaxDamage() - dmg + 1 : (stack.getItemDamage() == 0 ? 100 : Math.max(1, (stack.getMaxDamage() - stack.getItemDamage()) * 100 / stack.getMaxDamage())) + "%");
 				offset = 6;
 				int unbreakLvl = EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking.effectId, stack);
 				glPushMatrix();
